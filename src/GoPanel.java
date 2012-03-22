@@ -20,6 +20,7 @@ public class GoPanel extends Panel {
 	 */
 	private static final long serialVersionUID = 4781863948394812333L;
 
+	private Board goBoard;
 	private Point location;
 	private Point point;
 	private Point intersection;
@@ -29,7 +30,6 @@ public class GoPanel extends Panel {
 	private static Image blackCursor;
 	private static Image whiteCursor;
 	private int color = 0;
-	private Board goBoard;
 	private int[] verticals;
 	private int[] horizontals;
 	private GamePlay gamePlay;
@@ -40,7 +40,7 @@ public class GoPanel extends Panel {
 	private static Point borderTopLeft = new Point(17, 17);
 	private static Point borderBottomRight = new Point(340, 329);
 
-	public GoPanel(Board gb, GamePlay gp) throws IOException {
+	public GoPanel(Board b, GamePlay gp) throws IOException {
 
 		GoPanel.background = ImageIO.read(new File("images/goBoard.png"));
 
@@ -57,24 +57,24 @@ public class GoPanel extends Panel {
 		this.setSize(400, 386);
 		// this.setMinimumSize(new Dimension(400, 386));
 
-		this.goBoard = gb;
-		this.size = gb.getSize();
-		this.location = new Point(0, this.goBoard.getSize() - 1);
+		this.size = b.getSize();
+		this.location = new Point(0, b.getSize() - 1);
 		this.point = new Point(GoPanel.borderTopLeft.x,
 				GoPanel.borderBottomRight.y);
 
 		this.intersection = new Point(0, 0);
-		this.verticals = new int[this.goBoard.getSize()];
-		this.horizontals = new int[this.goBoard.getSize()];
+		this.verticals = new int[b.getSize()];
+		this.horizontals = new int[b.getSize()];
 
-		for (int i = 0; i < this.goBoard.getSize(); i++) {
+		for (int i = 0; i < b.getSize(); i++) {
 			this.horizontals[i] = GoPanel.borderTopLeft.y
-					+ ((this.goBoard.getSize() - i - 1) * GoPanel.cellDim.y);
+					+ ((b.getSize() - i - 1) * GoPanel.cellDim.y);
 			this.verticals[i] = GoPanel.borderTopLeft.x
 					+ (i * GoPanel.cellDim.x);
 		} // end for
 
 		this.gamePlay = gp;
+		this.goBoard = b;
 
 	} // end constructor
 
@@ -83,9 +83,9 @@ public class GoPanel extends Panel {
 		g.drawImage(GoPanel.background, 0, 0, null);
 
 		// display pieces on board
-		for (int x = 0; x < this.goBoard.getSize(); x++) {
+		for (int x = 0; x < this.size; x++) {
 
-			for (int y = 0; y < this.goBoard.getSize(); y++) {
+			for (int y = 0; y < this.size; y++) {
 
 				Stone st = this.goBoard.getStone(new Point(x, y));
 				Image img = GoPanel.blackStone;
@@ -99,7 +99,8 @@ public class GoPanel extends Panel {
 					img = GoPanel.whiteStone;
 
 				if ((st.getColor() != -2) && (st.getColor() != -1)
-						&& (st.getColor() != 3) && (st.getChain() != null)
+						&& (st.getColor() != 3) && (st.getColor() != 4)
+						&& (st.getColor() != 5) && (st.getChain() != null)
 						&& (!st.getChain().isYan()))
 					g.drawImage(img, this.verticals[x], this.horizontals[y],
 							null);
@@ -116,7 +117,7 @@ public class GoPanel extends Panel {
 	} // end paint()
 
 	public void moveUp() {
-		if (this.intersection.y < this.goBoard.getSize() - 1) {
+		if (this.intersection.y < this.size - 1) {
 			this.intersection.y++;
 			this.point.y = this.horizontals[this.intersection.y];
 			this.location.y--;
@@ -261,5 +262,13 @@ public class GoPanel extends Panel {
 	public static void setWhiteCursor(Image whiteCursor) {
 		GoPanel.whiteCursor = whiteCursor;
 	} // end setWhiteCursor()
+
+	public String getMode() {
+		return mode;
+	}
+
+	public void setMode(String mode) {
+		this.mode = mode;
+	}
 
 } // end class

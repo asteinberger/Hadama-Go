@@ -1,6 +1,5 @@
 import java.awt.Point;
 import java.awt.event.*;
-import java.util.Arrays;
 
 /**
  * Top (39,38); Bottom (360,348)
@@ -16,30 +15,30 @@ public class GameListener implements KeyListener, ActionListener,
 	private static Point borderTopLeft = new Point(17, 17);
 	private static Point borderBottomRight = new Point(340, 329);
 	private HadamaGo ait;
+	private Board goBoard;
 	private int size = 9;
 	private Point location;
 	private Point point;
 	private Point intersection;
 	private int[] verticals;
 	private int[] horizontals;
-	private Board goBoard;
 	private GamePlay gamePlay;
 	private int color = 0;
 	private String mode = "HvH";
 	private boolean justPassed = false;
 	private boolean gameOver = false;
 
-	public GameListener(HadamaGo ait, Board gb, int s, GamePlay gp) {
+	public GameListener(HadamaGo ait, Board b, int s, GamePlay gp) {
 		this.ait = ait;
-		this.goBoard = gb;
 		this.size = s;
-		this.location = new Point(0, this.goBoard.getSize() - 1);
+		this.goBoard = b;
+		this.location = new Point(0, s - 1);
 		this.point = new Point(GameListener.borderTopLeft.x,
 				GameListener.borderTopLeft.y);
 		this.intersection = new Point(0, 0);
-		this.verticals = new int[this.goBoard.getSize()];
-		this.horizontals = new int[this.goBoard.getSize()];
-		for (int i = 0; i < this.goBoard.getSize(); i++) {
+		this.verticals = new int[s];
+		this.horizontals = new int[s];
+		for (int i = 0; i < s; i++) {
 			this.horizontals[i] = GameListener.borderTopLeft.y
 					+ ((this.size - i - 1) * GameListener.cellDim.y);
 			this.verticals[i] = GameListener.borderTopLeft.x
@@ -62,6 +61,24 @@ public class GameListener implements KeyListener, ActionListener,
 			this.movePiece('a');
 		else if (s.equals("place stone"))
 			this.movePiece(' ');
+		else if (s.equals("pass turn"))
+			this.pass();
+		else if (s.equals("forfeit"))
+			this.forfeit();
+		else if (s.equals("print board"))
+			this.goBoard.printBoard();
+		else if (s.equals("print chains"))
+			this.goBoard.printChains();
+		else if (s.equals("print weis"))
+			this.goBoard.printWeis();
+		else if (s.equals("print scores"))
+			this.goBoard.printScores();
+		else if (s.equals("print moves"))
+			System.out.println(this.goBoard.getMoves().toString());
+		else if (s.equals("undo move"))
+			this.undoMove();
+		else if (s.equals("new game"))
+			this.newGame();
 		else if (s.equals("New Game"))
 			this.newGame();
 		else if (s.equals("Undo"))
@@ -118,9 +135,7 @@ public class GameListener implements KeyListener, ActionListener,
 				break;
 			case 'K':
 			case 'k':
-				this.gamePlay.forfeit(this.color);
-				this.gameOver = true;
-				this.gamePlay.setGameOver(this.gameOver);
+				this.forfeit();
 				break;
 			} // end switch
 		} // end if
@@ -133,13 +148,17 @@ public class GameListener implements KeyListener, ActionListener,
 		case 'c':
 			this.goBoard.printChains();
 			break;
+		case 'I':
+		case 'i':
+			this.goBoard.printScores();
+			break;
 		case 'L':
 		case 'l':
 			this.goBoard.printWeis();
 			break;
 		case 'M':
 		case 'm':
-			System.out.println(this.gamePlay.getMoves().toString());
+			System.out.println(this.goBoard.getMoves().toString());
 			break;
 		case 'N':
 		case 'n':
@@ -182,6 +201,13 @@ public class GameListener implements KeyListener, ActionListener,
 		// + Integer.toString(arg0.getY()));
 	} // end mouseMoved()
 
+	private void forfeit() {
+		this.gamePlay.forfeit(this.color);
+		this.gameOver = true;
+		this.gamePlay.setGameOver(this.gameOver);
+		this.updateScores();
+	} // end forfeit()
+
 	private void newGame() {
 		this.gameOver = false;
 		this.gamePlay.setGameOver(this.gameOver);
@@ -189,20 +215,37 @@ public class GameListener implements KeyListener, ActionListener,
 		this.gamePlay.setPlayer(0);
 		this.color = 0;
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
+		this.updateScores();
 	} // end newGame()
+
+	private void undoMove() {
+		this.gamePlay.undoMove(this.goBoard);
+		this.togglePlayer();
+		HadamaGo.getGoPanel().setColor(this.color);
+		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
+		this.updateScores();
+	} // end undoMove()
 
 	private void placePiece() {
 		this.gamePlay.placePiece(this.goBoard, this.color);
 		this.justPassed = this.gamePlay.isJustPassed();
 		this.gameOver = this.gamePlay.isGameOver();
-		this.goBoard = this.gamePlay.getGoboard();
 		this.color = this.gamePlay.getPlayer();
 		this.ait.setGoboard(this.goBoard);
 		GoPanel gp = HadamaGo.getGoPanel();
 		gp.setColor(this.color);
 		HadamaGo.setGoPanel(gp);
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
+		this.updateScores();
 	} // end placePiece()
+
+	private void updateScores() {
+		double[] scores = this.goBoard.getScores();
+		HadamaGo.getScoreBlack().setText(
+				"Black = " + Double.toString(scores[0]));
+		HadamaGo.getScoreWhite().setText(
+				"White = " + Double.toString(scores[1]));
+	} // end updateScores()
 
 	private void pass() {
 		if (this.justPassed) {
@@ -218,15 +261,8 @@ public class GameListener implements KeyListener, ActionListener,
 		this.gamePlay.setPlayer(this.color);
 		HadamaGo.getGoPanel().setColor(this.color);
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
+		this.updateScores();
 	} // end pass()
-
-	private void undoMove() {
-		boolean undo = this.gamePlay.undoMove(this.goBoard);
-		if (undo)
-			this.togglePlayer();
-		HadamaGo.getGoPanel().setColor(this.color);
-		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
-	} // end undoMove()
 
 	private void togglePlayer() {
 		if (this.color == 0)
@@ -279,5 +315,29 @@ public class GameListener implements KeyListener, ActionListener,
 	public void setMode(String mode) {
 		this.mode = mode;
 	} // end setMode()
+
+	public Point getLocation() {
+		return location;
+	}
+
+	public void setLocation(Point location) {
+		this.location = location;
+	}
+
+	public Point getPoint() {
+		return point;
+	}
+
+	public void setPoint(Point point) {
+		this.point = point;
+	}
+
+	public Point getIntersection() {
+		return intersection;
+	}
+
+	public void setIntersection(Point intersection) {
+		this.intersection = intersection;
+	}
 
 } // end class

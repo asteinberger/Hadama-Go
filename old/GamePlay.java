@@ -1,13 +1,17 @@
 import java.awt.Point;
 import java.util.Random;
 
+//legal move
+//1) [empty]
+//2) not surrounded
+//3) "double jeopardy" (sukuru) - you take one piece and then opponent takes your piece
+
+//illegal move
+//1) surrounded
+//2) not empty
+
 /**
- * GamePlay - place stones on board for both human and machine players. Legal
- * moves in go include passing, placing a stone in an area that's not completely
- * surrounded by enemies, and sukuru ("double jeopardy") which is placing a
- * stone where you take an enemy's stone and then your opponent takes that
- * stone. Illegal moves are where the stone is completely surrounded by enemies,
- * or a stone color 0 or 1 is already on the board at its location.
+ * GamePlay - place stones on board for both human and machine players.
  * 
  * @author Haoran Ma <mahaoran1020@gmail.com>, Adam Steinberger
  *         <steinz08@gmail.com>
@@ -15,22 +19,28 @@ import java.util.Random;
  */
 public class GamePlay {
 
+	private Point location;
+	private Point point;
+	private Point intersection;
+	private int[] horizontals;
+	private int[] verticals;
 	private int color;
 	private boolean gameOver = false;
 	private boolean justPassed = false;
 	private String mode;
+	private int size;
 
-	/**
-	 * Create new GamePlay object for a new game with a new board.
-	 * 
-	 * @param m
-	 *            mode
-	 * @param s
-	 *            size of goBoard
-	 */
-	public GamePlay(String m) {
+	// private boolean huiti = false;
+
+	public GamePlay(String m, int s) {
 		this.color = 0;
-		m = m;
+		this.mode = m;
+		this.size = s;
+		this.location = new Point(0, this.size - 1);
+		this.point = new Point(0, 0);
+		this.intersection = new Point(0, 0);
+		this.horizontals = new int[s];
+		this.verticals = new int[s];
 	} // end constructor
 
 	/**
@@ -39,17 +49,38 @@ public class GamePlay {
 	 * @param m
 	 *            game mode
 	 * @param s
-	 *            size of board
+	 *            size of GoBoard
+	 * @param l
+	 *            location
+	 * @param p
+	 *            point
+	 * @param i
+	 *            intersection
+	 * @param v
+	 *            verticals
+	 * @param h
+	 *            horizontals
+	 * @param gb
+	 *            goBoard
 	 * @param c
 	 *            color
+	 * @param g
+	 *            game
 	 */
-	public GamePlay(String m, int c) {
-		m = m;
+	public GamePlay(String m, int s, Point l, Point p, Point i, int[] h,
+			int[] v, int c) {
+		this.mode = m;
+		this.size = s;
+		this.location = l;
+		this.point = p;
+		this.intersection = i;
+		this.horizontals = h;
+		this.verticals = v;
 		this.color = c;
 	} // end constructor
 
 	private int getStoneColor(Board b, int x, int y) {
-		Stone s = new Stone(b);
+		Stone s = new Stone();
 		Point p = new Point(x, y);
 		if (b.getStone(p) != null)
 			s = b.getStone(p);
@@ -59,190 +90,187 @@ public class GamePlay {
 		return color;
 	} // end getStoneColor()
 
-	private void toggleColor(int c) {
-		this.color = 0;
-		if (c == 0)
-			this.color = 1;
-	} // end toggleColor()
+	// c = player stone color
+	public void placePiece(Board b, int c) {
 
-	/**
-	 * Place a Stone onto the board.
-	 * 
-	 * @param b
-	 *            board
-	 * @param c
-	 *            color of stone. player 1 has color 0 and player 2 has color 1;
-	 *            while empty stone has color 0 and yan has color -1.
-	 */
-	public Board placePiece(Board b, String m, Point l, int c) {
-
-		Point p = new Point(l.x, b.getSize() - l.y - 1);
+		Point p = new Point(this.location.x, this.size - this.location.y - 1);
 		Stone s = b.getStone(p);
+		s.setLocation(p);
 
 		if (s.getChain() != null) {
 
 			// if stone's color is 3, you can put there any time
-			if ((s.getColor() == 3) && (s.getColor() != 0)
-					&& (s.getColor() != 1)) {
+			if (s.getColor() == 3) {
+				if (s.getColor() != 0 && s.getColor() != 1) {
+					Point a = new Point(this.location.x, size - this.location.y
+							- 1);
+					Stone st = new Stone(c, a); // 0 is black 1 is white
+					b.addStone(st);
+					this.justPassed = false;
+					if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
+						if (c == 0) {
+							this.moveOpponent(b, 1);
+						} else {
+							this.moveOpponent(b, 0);
+						} // end if
+					} else {
+						this.togglePlayer(c);
+					} // end if
+				}
 
-				Point a = new Point(l.x, b.getSize() - l.y - 1);
-				Stone st = new Stone(b, c, a);
-				b.addStone(st);
-				this.justPassed = false;
-
-				if (m.equals("HvC") || m.equals("CvH")) {
-					if (c == 0)
-						this.moveEnemy(b, 1);
-					else
-						this.moveEnemy(b, 0);
-				} else
-					this.toggleColor(c);
-
-			} // end if
+			}
 
 			// if it is Yan and only one empty place left
 			if (s.getChain().size() == 1) {
 
-				Chain[] lc = s.checkChains();
-				int numTizi = 0;
-				int numHuozi = 0;
-				int numTiziStone = 0;
-
+				Chain[] lc = s.checkChains(b);
+				int TiziNum = 0;
+				int HuoziNum = 0;
+				int TiziStoneNum = 0;
 				for (int i = 0; i < 4; i++) {
-
 					if (lc[i] != null) {
 
-						if ((lc[i].first().getColor() != c)
-								&& (lc[i].getQis().size() == 1)) {
-							numTizi++;
-							numTiziStone = lc[i].size();
-						} // end if
+						if (lc[i].first().getColor() != c
+								&& lc[i].getQis().size() == 1) {
+							TiziNum++;
+							TiziStoneNum = lc[i].size();
+						}
 
-						if ((lc[i].first().getColor() == c)
-								&& (lc[i].getQis().size() > 1))
-							numHuozi++;
+						if (lc[i].first().getColor() == c
+								&& lc[i].getQis().size() > 1) {
+							HuoziNum++;
 
-					} // end if
+						}
+					}
 
-				} // end for
+				}
 
-				if ((numTizi > 0) && (s.getColor() != 0) && (s.getColor() != 1)) {
+				if (TiziNum > 0 && s.getColor() != 0 && s.getColor() != 1) {
 
 					if (!b.getLastTiziPosition().equals(p)) {
 
-						Point a = new Point(l.x, b.getSize() - l.y - 1);
-						Stone st = new Stone(b, c, a);
+						Point a = new Point(this.location.x, size
+								- this.location.y - 1);
+						Stone st = new Stone(c, a);
 						b.addStone(st);
 						this.justPassed = false;
+						if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
+							if (c == 0) {
+								this.moveOpponent(b, 1);
+							} else {
+								this.moveOpponent(b, 0);
+							} // end if
+						} else {
+							this.togglePlayer(c);
+						}
+					} else {
+						if (TiziStoneNum == 2) {
+							Point a = new Point(this.location.x, size
+									- this.location.y - 1);
+							Stone st = new Stone(c, a);
+							b.addStone(st);
+							this.justPassed = false;
+							if (this.mode.equals("HvC")
+									|| this.mode.equals("CvH")) {
+								if (c == 0) {
+									this.moveOpponent(b, 1);
+								} else {
+									this.moveOpponent(b, 0);
+								} // end if
+							} else {
+								this.togglePlayer(c);
+							}
 
-						if (m.equals("HvC") || m.equals("CvH")) {
-							if (c == 0)
-								this.moveEnemy(b, 1);
-							else
-								this.moveEnemy(b, 0);
-						} else
-							this.toggleColor(c);
+						}
 
-					} else if (numTiziStone == 2) {
+					}
 
-						Point a = new Point(l.x, b.getSize() - l.y - 1);
-						Stone st = new Stone(b, c, a);
-						b.addStone(st);
-						this.justPassed = false;
+				}// end if
+					// else it is illgal move
 
-						if (m.equals("HvC") || m.equals("CvH")) {
-							if (c == 0)
-								this.moveEnemy(b, 1);
-							else
-								this.moveEnemy(b, 0);
-						} else
-							this.toggleColor(c);
-
-					} // end if
-
-				} // end if
-
-				if ((numHuozi > 0) && (s.getColor() != 0)
-						&& (s.getColor() != 1)) {
-
-					Point a = new Point(l.x, b.getSize() - l.y - 1);
-					Stone st = new Stone(b, c, a);
+				if (HuoziNum > 0 && s.getColor() != 0 && s.getColor() != 1) {
+					Point a = new Point(this.location.x, size - this.location.y
+							- 1);
+					Stone st = new Stone(c, a);
 					b.addStone(st);
 					this.justPassed = false;
-
-					if (m.equals("HvC") || m.equals("CvH")) {
-						if (c == 0)
-							this.moveEnemy(b, 1);
-						else
-							this.moveEnemy(b, 0);
-
-					} else
-						this.toggleColor(c);
-
-				} // end if
-
-			} else if ((s.getColor() != 0) && (s.getColor() != 1)) {
-
-				Point a = new Point(l.x, b.getSize() - l.y - 1);
-				Stone st = new Stone(b, c, a);
-				b.addStone(st);
-				this.justPassed = false;
-
-				if (m.equals("HvC") || m.equals("CvH")) {
-					if (c == 0)
-						this.moveEnemy(b, 1);
-					else
-						this.moveEnemy(b, 0);
-				} else
-					this.toggleColor(c);
+					if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
+						if (c == 0) {
+							this.moveOpponent(b, 1);
+						} else {
+							this.moveOpponent(b, 0);
+						} // end if
+					} else {
+						this.togglePlayer(c);
+					}
+				}// end if
+					// else it is illgal move
 
 			} // end if
-
-		} else if ((s.getColor() != 0) && (s.getColor() != 1)) {
-
-			Point a = new Point(l.x, b.getSize() - l.y - 1);
-			Stone st = new Stone(b, c, a);
-			b.addStone(st);
-			this.justPassed = false;
-
-			if (m.equals("HvC") || m.equals("CvH")) {
-				if (c == 0)
-					this.moveEnemy(b, 1);
-				else
-					this.moveEnemy(b, 0);
-			} else
-				this.toggleColor(c);
-
-		} // end if
-
-		return b;
+			else {
+				if (s.getColor() != 0 && s.getColor() != 1) {
+					Point a = new Point(this.location.x, size - this.location.y
+							- 1);
+					Stone st = new Stone(c, a);
+					b.addStone(st);
+					this.justPassed = false;
+					if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
+						if (c == 0) {
+							this.moveOpponent(b, 1);
+						} else {
+							this.moveOpponent(b, 0);
+						} // end if
+					} else {
+						this.togglePlayer(c);
+					} // end if
+				}
+			}
+		} else {
+			if (s.getColor() != 0 && s.getColor() != 1) {
+				Point a = new Point(this.location.x, size - this.location.y - 1);
+				Stone st = new Stone(c, a);
+				b.addStone(st);
+				this.justPassed = false;
+				if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
+					if (c == 0) {
+						this.moveOpponent(b, 1);
+					} else {
+						this.moveOpponent(b, 0);
+					} // end if
+				} else {
+					this.togglePlayer(c);
+				} // end if
+			}
+		}
 
 	} // end placePiece()
 
-	/**
-	 * Have enemy place a stone onto the board
-	 * 
-	 * @param b
-	 *            board
-	 * @param c
-	 *            color of enemy stones
-	 */
-	public Board moveEnemy(Board b, int c) {
+	protected void togglePlayer(int p) {
+		if (p == 0) {
+			this.color = 1;
+		} else {
+			this.color = 0;
+		} // end if
+	} // end togglePlayer()
+
+	// c = opponent stone color
+	public void moveOpponent(Board b, int c) {
 
 		if (!this.gameOver) {
 
 			int oppX = 0;
 			int oppY = 0;
-			int clr = 0;
 			boolean freeSpace = false;
+			int color = 0;
 
-			for (int i = 0; i < b.getSize(); i++) {
-				for (int j = 0; j < b.getSize(); j++) {
-					clr = this.getStoneColor(b, i, j);
+			for (int i = 0; i < 9; i++) {
+				for (int j = 0; j < 9; j++) {
+					color = this.getStoneColor(b, i, j);
 					Point p = new Point(i, j);
 					boolean isYan = b.getStone(p).isYan();
-					if (!isYan)
+					if (!isYan) {
 						freeSpace = true;
+					} // end if
 				} // end for
 			} // end for
 
@@ -254,37 +282,40 @@ public class GamePlay {
 				do {
 
 					Random rand = new Random(System.currentTimeMillis());
-					oppX = rand.nextInt(b.getSize());
-					oppY = rand.nextInt(b.getSize());
+					oppX = rand.nextInt(this.size);
+					oppY = rand.nextInt(this.size);
 
 					int randPass = rand.nextInt(999);
 					if (randPass == 900) {
 						if (this.justPassed) {
 							this.gameOver = true;
 							this.gameOver();
+							return;
 						} else {
 							this.justPassed = true;
+							return;
 						} // end if
-					} else
+					} else {
 						this.justPassed = false;
+					} // end if
 
 					Point p = new Point(oppX, oppY);
-					clr = this.getStoneColor(b, oppX, oppY);
+					color = this.getStoneColor(b, oppX, oppY);
 					isYan = b.getStone(p).isYan();
 					size = b.getStone(p).getChain().size();
 
-				} while (!(isYan && (this.color != clr))
-						|| !(isYan && (size == 0)) || (clr == 0) || (clr == 1));
+				} while (!(isYan && (this.color != color))
+						|| !(isYan && (size == 0)) || (color == 0)
+						|| (color == 1));
 				Point a = new Point(oppX, oppY);
-				Stone s = new Stone(b, c, a);
+				Stone s = new Stone(c, a);
 				b.addStone(s);
 
 			} // end if
 
-		} else
+		} else {
 			this.gameOver();
-
-		return b;
+		} // else if
 
 	} // end moveOpponent()
 
@@ -298,31 +329,69 @@ public class GamePlay {
 				+ " ended game!");
 	} // end forfeit()
 
-	/*
-	 * getters and setters
-	 */
-	public int getColor() {
-		return this.color;
-	} // end getColor()
+	// getters and setters
+	public Point getCurrLocation() {
+		return this.location;
+	} // end getCurrLocation()
 
-	public void setColor(int c) {
-		this.color = c;
-	} // end setColor()
+	public void setCurrLocation(Point currLocation) {
+		this.location = currLocation;
+	} // end setCurrLocation()
+
+	public Point getPoint() {
+		return this.point;
+	} // end getPoint()
+
+	public void setPoint(Point point) {
+		this.point = point;
+	} // end setPoint()
+
+	public Point getIntersection() {
+		return this.intersection;
+	} // end getIntersection()
+
+	public void setIntersection(Point intersect) {
+		this.intersection = intersect;
+	} // end setIntersection()
+
+	public int[] getHorizontals() {
+		return this.horizontals;
+	} // end getHorizontals()
+
+	public void setHorizontals(int[] horiz) {
+		this.horizontals = horiz;
+	} // end setHorizontals()
+
+	public int[] getVerticals() {
+		return this.verticals;
+	} // end getVerticals()
+
+	public void setVerticals(int[] vert) {
+		this.verticals = vert;
+	} // end setVerticals()
+
+	public int getPlayer() {
+		return this.color;
+	} // end getPlayer()
+
+	public void setPlayer(int player) {
+		this.color = player;
+	} // end setPlayer()
 
 	public boolean isGameOver() {
 		return this.gameOver;
 	} // end isGameOver()
 
-	public void setGameOver(boolean go) {
-		this.gameOver = go;
+	public void setGameOver(boolean gameOver) {
+		this.gameOver = gameOver;
 	} // end setGameOver()
 
 	public boolean isJustPassed() {
 		return this.justPassed;
 	} // end isJustPassed()
 
-	public void setJustPassed(boolean jp) {
-		this.justPassed = jp;
+	public void setJustPassed(boolean justPassed) {
+		this.justPassed = justPassed;
 	} // end setJustPassed()
 
 } // end class

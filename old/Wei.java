@@ -14,35 +14,31 @@ public class Wei extends TreeSet<Stone> {
 	 * are not occupied by an active stone.
 	 */
 
-	private Board goboard;
 	private int weiNum;
 	static int counterOfWei;
 
-	public Wei(Board b) {
-		this.goboard = b;
+	public Wei() {
 		weiNum = counterOfWei;
 		counterOfWei++;
-
 	} // end constructor
 
-	public Wei(Board b, Stone h) {
-		this.addToWei(h);
-		this.goboard = b;
-
+	public Wei(Stone s) {
+		this.addToWei(s);
 	} // end constructor
+
+	public int getWeiIndex() {
+		return weiNum;
+	}
 
 	public void addToWei(Stone s) {
 		// have to be the same color stone
 		if (!this.contains(s)) {
 			s.setWei(this);
 			this.add(s);
-
 		} // end if
 
 	} // end addStone()
 
-	
-	// Remove the Stone from WeiList
 	public void removeStone(Stone s) {
 
 		Point p = s.getLocation();
@@ -57,7 +53,6 @@ public class Wei extends TreeSet<Stone> {
 		} // end while
 	}
 
-	// Check if the stones inside Wei, if the stone not belong to this Wei anymore then remove it from the Wei
 	public void recheckStones() {
 
 		TreeSet<Stone> toRemove = new TreeSet<Stone>();
@@ -77,13 +72,13 @@ public class Wei extends TreeSet<Stone> {
 
 	} // end checkStones()
 
-	public void yanDetector() {
+	public void yanDetector(Board b) {
 
 		int xMin;
 		int xMax;
 		int yMin = Integer.MAX_VALUE;
 		int yMax = Integer.MIN_VALUE;
-		int color = this.first().getColor();
+
 		xMin = this.first().getLocation().x;
 		xMax = this.last().getLocation().x;
 
@@ -114,39 +109,25 @@ public class Wei extends TreeSet<Stone> {
 			for (int j = xMin + 1; j < xMax; j++) {
 
 				Point p = new Point(j, i);
-				Stone s = this.goboard.getStone(p);
+				Stone s = b.getStone(p);
 
 				if ((s.getColor() != 1) && (s.getColor() != 0)
-						&& (s.getColor() != 3) && (s.getColor() != 4)) {
+						&& (s.getColor() != 3)) {
 
 					// if chain is empty,add it no matter what
 					// if chain is not empty, check if it already became chain
 					if (s.getChain() != null) {
 						if (!s.getChain().isYan()) {
-							if (color == 1) {
-								s.setColor(3);
-								this.goboard.addStone(s);
-							} else {
-								s.setColor(4);
-								this.goboard.addStone(s);
-							}
+							s.setColor(3);
+							b.addStone(s);
 						}
 					} else {
-						if (color == 1) {
-							s.setColor(3);
-							this.goboard.addStone(s);
-						} else {
-							s.setColor(4);
-							this.goboard.addStone(s);
-						}
+						s.setColor(3);
+						b.addStone(s);
 					}
 				}
 			}
 		}
-	}
-	
-	public int getWeiIndex() {
-		return weiNum;
 	}
 
 } // end class

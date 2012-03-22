@@ -1,9 +1,7 @@
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Random;
-import java.util.Stack;
-import java.util.TreeSet;
 
 //legal move
 //1) [empty]
@@ -32,13 +30,13 @@ public class GamePlay {
 	private int color;
 	private boolean gameOver = false;
 	private boolean justPassed = false;
-	private String mode;
+	public String mode;
 	private int size;
-	private Stack<Move> moves = new Stack<Move>();
+	private boolean addMovealready = false;
 
 	// private boolean huiti = false;
 
-	public GamePlay(Board b, String m, int s) {
+	public GamePlay(String m, int s) {
 		this.color = 0;
 		this.mode = m;
 		this.size = s;
@@ -47,7 +45,7 @@ public class GamePlay {
 		this.intersection = new Point(0, 0);
 		this.horizontals = new int[this.size];
 		this.verticals = new int[this.size];
-		this.goboard = b;
+		this.goboard = new Board(this.size);
 	} // end constructor
 
 	/**
@@ -88,7 +86,7 @@ public class GamePlay {
 	} // end constructor
 
 	private int getStoneColor(Board b, int x, int y) {
-		Stone s = new Stone(b);
+		Stone s = new Stone();
 		Point p = new Point(x, y);
 		if (this.goboard.getStone(p) != null) {
 			s = this.goboard.getStone(p);
@@ -103,42 +101,45 @@ public class GamePlay {
 	// c = player stone color
 	public void placePiece(Board b, int c) {
 
-		Move m = new Move(b, c);
-		TreeSet<Stone> removed = new TreeSet<Stone>();
-
 		Point p = new Point(this.location.x, size - this.location.y - 1);
 		Stone s = b.getStone(p);
-		s.setLocation(p);
-		removed.add(s);
 		this.goboard = b;
-
+		ArrayList<Chain> removedChains = new ArrayList<Chain>();
 		if (s.getChain() != null) {
 
-			// if stone's color is 3, you can put there any time
-			if (s.getColor() == 3) {
+			// Condition one --- if stone's color is 3 or 4, you can put there
+			// any time
+			if (s.getColor() == 3 || s.getColor() == 4) {
 				if (s.getColor() != 0 && s.getColor() != 1) {
 					Point a = new Point(this.location.x, size - this.location.y
 							- 1);
-					Stone st = new Stone(b, c, a); // 0 is black 1 is white
-					this.goboard.addStone(st, m);
+					Stone st = new Stone(c, a); // 0 is black 1 is white
+												// removedChains =
+					removedChains = this.goboard.addStone(st);
 					this.justPassed = false;
 					if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
 						if (c == 0) {
 							this.moveOpponent(b, 1);
 						} else {
 							this.moveOpponent(b, 0);
-						} // end if
-					} else {
+						} // end if } else {
 						this.togglePlayer(c);
 					} // end if
+
+					Stone newst = (Stone) st.clone();
+					Move newMove = new Move(newst, removedChains);
+					if (this.addMovealready == false) {
+						this.goboard.moves.push(newMove);
+						this.addMovealready = true;
+					}
 				}
 
 			}
 
-			// if it is Yan and only one empty place left
+			// Condition two --- if it is Yan and only one empty place left
 			if (s.getChain().size() == 1) {
 
-				Chain[] lc = s.checkChains();
+				Chain[] lc = s.checkChains(b.getBoard());
 				int TiziNum = 0;
 				int HuoziNum = 0;
 				int TiziStoneNum = 0;
@@ -154,20 +155,18 @@ public class GamePlay {
 						if (lc[i].first().getColor() == c
 								&& lc[i].getQis().size() > 1) {
 							HuoziNum++;
-
 						}
 					}
-
 				}
 
 				if (TiziNum > 0 && s.getColor() != 0 && s.getColor() != 1) {
 
-					if (!this.goboard.getLastTiziPosition().equals(p)) {
+					if (!this.goboard.LastTiziPosition.equals(p)) {
 
 						Point a = new Point(this.location.x, size
 								- this.location.y - 1);
-						Stone st = new Stone(b, c, a);
-						this.goboard.addStone(st, m);
+						Stone st = new Stone(c, a); // 0 is black 1 is white
+						removedChains = this.goboard.addStone(st);
 						this.justPassed = false;
 						if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
 							if (c == 0) {
@@ -178,12 +177,21 @@ public class GamePlay {
 						} else {
 							this.togglePlayer(c);
 						}
+
+						Stone newst = (Stone) st.clone();
+						Move newMove = new Move(newst, removedChains);
+						if (this.addMovealready == false) {
+							this.goboard.moves.push(newMove);
+							this.addMovealready = true;
+						}
+
 					} else {
 						if (TiziStoneNum == 2) {
 							Point a = new Point(this.location.x, size
 									- this.location.y - 1);
-							Stone st = new Stone(b, c, a);
-							this.goboard.addStone(st, m);
+							Stone st = new Stone(c, a); // 0 is black 1 is
+														// white
+							removedChains = this.goboard.addStone(st);
 							this.justPassed = false;
 							if (this.mode.equals("HvC")
 									|| this.mode.equals("CvH")) {
@@ -196,18 +204,23 @@ public class GamePlay {
 								this.togglePlayer(c);
 							}
 
+							Stone newst = (Stone) st.clone();
+							Move newMove = new Move(newst, removedChains);
+							if (this.addMovealready == false) {
+								this.goboard.moves.push(newMove);
+								this.addMovealready = true;
+							}
 						}
-
 					}
 
 				}// end if
-					// else it is illgal move
-
+				// else it is illgal move
+				
 				if (HuoziNum > 0 && s.getColor() != 0 && s.getColor() != 1) {
 					Point a = new Point(this.location.x, size - this.location.y
 							- 1);
-					Stone st = new Stone(b, c, a);
-					this.goboard.addStone(st, m);
+					Stone st = new Stone(c, a); // 0 is black 1 is white
+					removedChains = this.goboard.addStone(st);
 					this.justPassed = false;
 					if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
 						if (c == 0) {
@@ -217,17 +230,25 @@ public class GamePlay {
 						} // end if
 					} else {
 						this.togglePlayer(c);
-					}
+					}// end else
+
+					Stone newst = (Stone) st.clone();
+					Move newMove = new Move(newst, removedChains);
+					if (this.addMovealready == false) {
+						this.goboard.moves.push(newMove);
+						this.addMovealready = true;
+					}// end if
 				}// end if
-					// else it is illgal move
+
+				// else it is illgal move
 
 			} // end if
 			else {
 				if (s.getColor() != 0 && s.getColor() != 1) {
 					Point a = new Point(this.location.x, size - this.location.y
 							- 1);
-					Stone st = new Stone(b, c, a);
-					this.goboard.addStone(st, m);
+					Stone st = new Stone(c, a); // 0 is black 1 is white
+					removedChains = this.goboard.addStone(st);
 					this.justPassed = false;
 					if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
 						if (c == 0) {
@@ -237,14 +258,23 @@ public class GamePlay {
 						} // end if
 					} else {
 						this.togglePlayer(c);
-					} // end if
-				}
-			}
+					} // end else
+
+					Stone newst = (Stone) st.clone();
+					Move newMove = new Move(newst, removedChains);
+					if (this.addMovealready == false) {
+						this.goboard.moves.push(newMove);
+						this.addMovealready = true;
+					}//end if
+				}//end if
+			}//end else
 		} else {
+
 			if (s.getColor() != 0 && s.getColor() != 1) {
 				Point a = new Point(this.location.x, size - this.location.y - 1);
-				Stone st = new Stone(b, c, a);
-				this.goboard.addStone(st, m);
+				Stone st = new Stone(c, a); // 0 is black 1 is white
+
+				removedChains = this.goboard.addStone(st);
 				this.justPassed = false;
 				if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
 					if (c == 0) {
@@ -255,162 +285,20 @@ public class GamePlay {
 				} else {
 					this.togglePlayer(c);
 				} // end if
-			}
-		}
 
-		m.removeStones(removed);
-		this.moves.add(m);
+				Stone newst = (Stone) st.clone();
+				Move newMove = new Move(newst, removedChains);
+				if (this.addMovealready == false) {
+					this.goboard.moves.push(newMove);
+					this.addMovealready = true;
+				}//end if
+			}//end if
 
+		}// end else
+
+		this.addMovealready = false;
+		
 	} // end placePiece()
-
-	public boolean undoMove(Board gb) {
-
-		this.goboard.printBoard();
-
-		if (!this.moves.isEmpty()) {
-
-			this.goboard = gb;
-			Move m = this.moves.pop();
-			Move mTrash = new Move(gb);
-
-			// Iterator<Chain> it2 = m.getAddedChains().iterator();
-			// while (it2.hasNext()) {
-			// Chain next = it2.next();
-			// System.out.println(next);
-			// Iterator<Stone> it = next.iterator();
-			// while (it.hasNext()) {
-			// Stone next2 = it.next();
-			// Point next2Loc = next2.getLocation();
-			// this.goboard.removeStone(next2Loc, mTrash);
-			// } // end while
-			// this.goboard.printBoard();
-			// } // end while
-			//
-			// it2 = m.getRemovedChains().iterator();
-			// while (it2.hasNext()) {
-			// Chain next = it2.next();
-			// System.out.println(next);
-			// Iterator<Stone> it = next.iterator();
-			// while (it.hasNext()) {
-			// Stone next2 = it.next();
-			// this.goboard.addStone(next2, mTrash);
-			// } // end while
-			// this.goboard.printBoard();
-			// } // end while
-			//
-			// Iterator<Wei> it3 = m.getAddedWeis().iterator();
-			// while (it3.hasNext()) {
-			// Wei next = it3.next();
-			// System.out.println(next);
-			// Iterator<Stone> it = next.iterator();
-			// while (it.hasNext()) {
-			// Stone next2 = it.next();
-			// Point next2Loc = next2.getLocation();
-			// this.goboard.removeStone(next2Loc, mTrash);
-			// } // end while
-			// this.goboard.printBoard();
-			// } // end while
-			//
-			// it3 = m.getRemovedWeis().iterator();
-			// while (it3.hasNext()) {
-			// Wei next = it3.next();
-			// System.out.println(next);
-			// Iterator<Stone> it = next.iterator();
-			// while (it.hasNext()) {
-			// Stone next2 = it.next();
-			// this.goboard.addStone(next2, mTrash);
-			// } // end while
-			// this.goboard.printBoard();
-			// } // end while
-			//
-			// Iterator<Map.Entry<Stone, Chain>> it4 = m.getAddedToChain()
-			// .entrySet().iterator();
-			// while (it4.hasNext()) {
-			// Map.Entry<Stone, Chain> next = it4.next();
-			// System.out.println(next);
-			// Stone s = next.getKey();
-			// Chain c = next.getValue();
-			// c.removeStone(s, mTrash);
-			// this.goboard.printBoard();
-			// } // end while
-			//
-			// it4 = m.getRemovedFromChain().entrySet().iterator();
-			// while (it4.hasNext()) {
-			// Map.Entry<Stone, Chain> next = it4.next();
-			// System.out.println(next);
-			// Stone s = next.getKey();
-			// Chain c = next.getValue();
-			// c.addToChain(s, mTrash);
-			// this.goboard.printBoard();
-			// } // end while
-			//
-			// Iterator<Map.Entry<Qi, Chain>> it5 = m.getAddedToChainQi()
-			// .entrySet().iterator();
-			// while (it5.hasNext()) {
-			// Map.Entry<Qi, Chain> next = it5.next();
-			// System.out.println(next);
-			// Qi q = next.getKey();
-			// Chain c = next.getValue();
-			// c.getQis().remove(q);
-			// this.goboard.printBoard();
-			// } // end while
-			//
-			// it5 = m.getRemovedFromChainQi().entrySet().iterator();
-			// while (it5.hasNext()) {
-			// Map.Entry<Qi, Chain> next = it5.next();
-			// System.out.println(next);
-			// Qi q = next.getKey();
-			// Chain c = next.getValue();
-			// c.getQis().add(q);
-			// this.goboard.printBoard();
-			// } // end while
-			//
-			// Iterator<Map.Entry<Stone, Wei>> it6 =
-			// m.getAddedToWei().entrySet()
-			// .iterator();
-			// while (it6.hasNext()) {
-			// Map.Entry<Stone, Wei> next = it6.next();
-			// System.out.println(next);
-			// Stone s = next.getKey();
-			// Wei w = next.getValue();
-			// w.removeStone(s, mTrash);
-			// this.goboard.printBoard();
-			// } // end while
-			//
-			// it6 = m.getRemovedFromWei().entrySet().iterator();
-			// while (it6.hasNext()) {
-			// Map.Entry<Stone, Wei> next = it6.next();
-			// System.out.println(next);
-			// Stone s = next.getKey();
-			// Wei w = next.getValue();
-			// w.addToWei(s, mTrash);
-			// this.goboard.printBoard();
-			// } // end while
-
-			Iterator<Stone> it = m.getAdded().iterator();
-			while (it.hasNext()) {
-				Stone next = it.next();
-				Point nextLoc = next.getLocation();
-				this.goboard.removeStone(nextLoc, mTrash);
-				this.goboard.printBoard();
-			} // end while
-
-			it = m.getRemoved().iterator();
-			while (it.hasNext()) {
-				Stone next = it.next();
-				this.goboard.addStone(next, mTrash);
-				this.goboard.printBoard();
-			} // end while
-
-			this.goboard.printBoard();
-
-			return true;
-
-		} // end if
-
-		return false;
-
-	} // end undoMove()
 
 	protected void togglePlayer(int p) {
 		if (p == 0) {
@@ -422,8 +310,6 @@ public class GamePlay {
 
 	// c = opponent stone color
 	public void moveOpponent(Board b, int c) {
-
-		Move m = new Move(this.goboard);
 
 		if (!this.gameOver) {
 
@@ -477,8 +363,8 @@ public class GamePlay {
 						|| !(isYan && (size == 0)) || (color == 0)
 						|| (color == 1));
 				Point a = new Point(oppX, oppY);
-				Stone s = new Stone(b, c, a);
-				this.goboard.addStone(s, m);
+				Stone s = new Stone(c, a); // 0 is black 1 is white
+				this.goboard.addStone(s);
 
 			} // end if
 
@@ -486,10 +372,138 @@ public class GamePlay {
 			this.gameOver();
 		} // else if
 
-		this.moves.add(m);
-
 	} // end moveOpponent()
 
+	public void undoMove(Board b) {
+
+		Move m = b.moves.pop();
+		Stone s = m.getAddedStone();
+		Point location = s.getLocation();
+		Stone news = b.getStone(location);
+		Chain newc = news.getChain();
+
+		// update this stone's chain, if the size is 1 which we want to move
+		// from the chains
+		if (newc.size() == 1) {
+			b.chains.remove(b.realChainIndex(news.getChain().getChainIndex()));
+		}
+
+		// remove the stone from the board
+		b.getBoard()[location.x][location.y] = null;
+
+		// update the surrounding qis
+
+		Chain[] lc = news.checkChains(b.getBoard());
+
+		int c0 = 0;
+		int c1 = 0;
+		int c2 = 0;
+		int c3 = 0;
+		if (lc[0] != null) {
+			c0 = lc[0].getChainIndex();
+		}
+
+		if (lc[1] != null) {
+			c1 = lc[1].getChainIndex();
+		}
+		if (lc[2] != null) {
+			c2 = lc[2].getChainIndex();
+		}
+		if (lc[3] != null) {
+			c3 = lc[3].getChainIndex();
+
+		}
+
+		if (lc[0] != null) {
+			if (lc[0].first().getColor() != -1) {
+
+				// if they are different color
+				if (lc[0].first().getColor() != s.getColor()) {
+					lc[0].deeplyrecheckQis();
+				}
+				// if they are same color
+				else {
+					lc[0].updateChains(s);
+				}
+			}
+		}
+		if (lc[1] != null && c0 != c1 && lc[1].size() != 0) {
+			if (lc[1].first().getColor() != -1) {
+				// if they are different color
+				if (lc[1].first().getColor() != s.getColor()) {
+					lc[1].deeplyrecheckQis();
+				}
+				// if they are same color
+				else {
+					if (b.realChainIndex(lc[1].getChainIndex()) != -1)
+						lc[1].updateChains(s);
+				}
+			}
+		}
+		if (lc[2] != null && c2 != c0 && c2 != c1 && lc[2].size() != 0) {
+			if (lc[2].first().getColor() != -1) {
+				// if they are different color
+				if (lc[2].first().getColor() != s.getColor()) {
+					lc[2].deeplyrecheckQis();
+				}
+				// if they are same color
+				else {
+					if (b.realChainIndex(lc[2].getChainIndex()) != -1)
+						lc[2].updateChains(s);
+				}
+			}
+		}
+		if (lc[3] != null && c3 != c0 && c3 != c1 && c3 != c2
+				&& lc[3].size() != 0) {
+			if (lc[3].first().getColor() != -1) {
+				// if they are different color
+				if (lc[3].first().getColor() != s.getColor()) {
+					lc[3].deeplyrecheckQis();
+				}
+				// if they are same color
+				else {
+					if (b.realChainIndex(lc[3].getChainIndex()) != -1)
+						lc[3].updateChains(s);
+				}
+			}
+		}
+
+		// update Wei
+		Wei newW = news.getWei();
+		if (newW.size() == 1) {
+
+			// problem is here
+			b.weis.remove(b.realWeiIndex(news.getWei().getWeiIndex()));
+		} else {
+			b.weis.get(b.realWeiIndex(news.getWei().getWeiIndex())).remove(s);
+
+		}
+
+		// Add the removed stones back
+		ArrayList<Chain> removedChain = m.getRemovedChain();
+		for (int i = 0; i < removedChain.size(); i++) {
+			Chain c = removedChain.get(i);
+			Iterator<Stone> it = c.iterator();
+			while (it.hasNext()) {
+				Stone next = it.next();
+				b.addStone(next);
+			}
+		}// end for
+		
+		//I want to change the player color
+		this.justPassed = false;
+		if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
+			if (s.getColor() == 0) {
+				this.moveOpponent(b, 0);
+			} else {
+				this.moveOpponent(b, 1);
+			} // end if
+		} else {
+			this.togglePlayer(s.getColor());
+		} // end else
+		
+	}// end undoMove()
+	
 	public void forfeit(int p) {
 		System.out.println("Player " + Integer.toString(p) + " forfeits!");
 		this.gameOver();
@@ -531,7 +545,7 @@ public class GamePlay {
 
 	public void setHorizontals(int[] horiz) {
 		this.horizontals = horiz;
-	} // end setHorizontals()
+	} // end setHorizontals()getCounter()
 
 	public int[] getVerticals() {
 		return this.verticals;
@@ -572,13 +586,5 @@ public class GamePlay {
 	public void setJustPassed(boolean justPassed) {
 		this.justPassed = justPassed;
 	} // end setJustPassed()
-
-	public Stack<Move> getMoves() {
-		return moves;
-	}
-
-	public void setMoves(Stack<Move> moves) {
-		this.moves = moves;
-	}
 
 } // end class

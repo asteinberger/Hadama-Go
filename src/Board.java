@@ -1,9 +1,8 @@
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Stack;
 import java.util.TreeSet;
-
-import javax.media.opengl.GL;
 
 /**
  * Used to keep track of pieces to remove from board.
@@ -14,16 +13,13 @@ import javax.media.opengl.GL;
 
 public class Board {
 
-	private Stone[][] stones;
-	private ArrayList<Chain> chains = new ArrayList<Chain>();
-	private ArrayList<Wei> weis = new ArrayList<Wei>();
-	private Point lastTiziPosition;
-	private int lastTiziNum;
-	private int komi;
-	private GamePlay gamePlay;
-	private Point location;
-	private String mode;
-
+	private Stone[][] board;
+	public ArrayList<Chain> chains = new ArrayList<Chain>();
+	public ArrayList<Wei> weis = new ArrayList<Wei>();
+	public Stack<Move> moves = new Stack<Move>();
+	public Point LastTiziPosition;
+	public int LastTiziNum;
+	public double Komi = 2.5;
 	/**
 	 * size is the height or width of the goboard. Traditionally, Go is played
 	 * on a 19 by 19 sized board. Other standard dimensions include 13 by 13 and
@@ -40,11 +36,10 @@ public class Board {
 	 * @param s
 	 *            size of board (e.g., 9x9 vs 13x13 vs 19x19)
 	 */
-	public Board(int s, String m) {
+	public Board(int s) {
 		this.size = s;
-		this.mode = m;
-		this.stones = new Stone[s][s];
-		this.gamePlay = new GamePlay(this, m, s);
+		this.board = new Stone[this.size][this.size];
+
 	} // end constructor
 
 	/**
@@ -54,131 +49,119 @@ public class Board {
 	 * @param s
 	 *            stone to add to board
 	 */
-	public void addStone(Stone s, Move m) {
+	public ArrayList<Chain> addStone(Stone s) {
 
-		this.lastTiziPosition = new Point(-1, -1);
-		this.lastTiziNum = 0;
+		LastTiziPosition = new Point(-1, -1);
+		LastTiziNum = 0;
 
 		int x = s.getLocation().x;
 		int y = s.getLocation().y;
 
 		// if this position is Yan, then remove the Stone from the Yan
 		// If Yan is occupied, then remove it from the ChainList
-		if (this.stones[x][y] != null) {
+		if (board[x][y] != null) {
 
 			// *****for chain color = 3 **************
-			// maybe become a bug for the future
-			Stone a = this.stones[x][y].getChain().first();
+			Stone a = this.board[x][y].getChain().first(); // maybe become a bug
+															// for the future
 			Point p = a.getLocation();
 
-			if (this.stones[p.x][p.y].getColor() == 3)
-				this.stones[p.x][p.y].getChain().updateChains(s, m);
-			else
-				this.stones[x][y].getChain().removeStone(s, m);
+			if ((this.board[p.x][p.y].getColor() == 3)
+					|| (this.board[p.x][p.y].getColor() == 4)) {
+				this.board[p.x][p.y].getChain().updateChains(s);
+			} else {
 
-			if (this.stones[x][y] != null) {
-				if (this.stones[x][y].getChain().size() == 0) {
-					m.removeChain(this.stones[x][y].getChain());
-					this.chains.remove(this.getRealChainIndex(this.stones[x][y]
-							.getChain().getChainIndex()));
-				} // end if
-			} // end if
+				this.board[x][y].getChain().removeStone(s);
 
-		} // end if
+			}
+			if (this.board[x][y] != null) {
+				if (this.board[x][y].getChain().size() == 0) {
+					chains.remove(realChainIndex(this.board[x][y].getChain()
+							.getChainIndex()));
+				}
+			}
+		}
 
-		this.stones[x][y] = s;
+		this.board[x][y] = s;
 
 		// l is the liberties for Stone s
-		int[] l = s.checkQi();
-
+		int[] l = s.checkQi(this.board);
 		// lc is the surrounding chains for Stone s
-		Chain[] lc = s.checkChains();
+
+		Chain[] lc = s.checkChains(this.board);
 
 		Chain c = new Chain(this);
-		c.addToChain(s, m);
+		c.addToChain(s, this.board);
 		this.chains.add(c);
-		m.addChainStone(c, s);
 
-		Wei[] lw = s.checkWeis();
+		Wei[] lw = s.checkWeis(this.board);
 		Wei w = new Wei(this);
 
-		w.addToWei(s, m);
-		if (s.getColor() != 3) {
+		w.addToWei(s);
+		if (s.getColor() != 3 && s.getColor() != 4) {
 			this.weis.add(w);
-			m.addWeiStone(w, s);
-		} // end if
+		}
 
 		// ************Add stone into chain************************
-		// check for friendly chain above
+		// chain above
 		if (l[0] == s.getColor()) {
 
 			Iterator<Stone> it = lc[0].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				c.addToChain(next, m);
+				c.addToChain(next, this.board);
 			} // end while
 
-			if ((lc[0].getChainIndex() != c.getChainIndex())
-					&& (this.getRealChainIndex(lc[0].getChainIndex()) != -1)) {
-				m.removeChain(lc[0]);
-				this.chains
-						.remove(this.getRealChainIndex(lc[0].getChainIndex()));
-			} // end if
+			if (lc[0].getChainIndex() != c.getChainIndex()
+					&& realChainIndex(lc[0].getChainIndex()) != -1) {
+				chains.remove(realChainIndex(lc[0].getChainIndex()));
+			}
+		}// end if
 
-		} // end if
-
-		// check for friendly chain to right
+		// chain to right
 		if (l[1] == s.getColor()) {
 
 			Iterator<Stone> it = lc[1].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				c.addToChain(next, m);
+				c.addToChain(next, this.board);
 			} // end while
 
-			if ((lc[1].getChainIndex() != c.getChainIndex())
-					&& (this.getRealChainIndex(lc[1].getChainIndex()) != -1)) {
-				m.removeChain(lc[1]);
-				this.chains
-						.remove(this.getRealChainIndex(lc[1].getChainIndex()));
-			} // end if
-
+			if (lc[1].getChainIndex() != c.getChainIndex()
+					&& realChainIndex(lc[1].getChainIndex()) != -1) {
+				chains.remove(realChainIndex(lc[1].getChainIndex()));
+			}
 		} // end if
 
-		// check for friendly chain below
+		// chain below
 		if (l[2] == s.getColor()) {
 
 			Iterator<Stone> it = lc[2].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				c.addToChain(next, m);
+				c.addToChain(next, this.board);
 			} // end while
 
-			if ((lc[2].getChainIndex() != c.getChainIndex())
-					&& (this.getRealChainIndex(lc[2].getChainIndex()) != -1)) {
-				m.removeChain(lc[2]);
-				this.chains
-						.remove(this.getRealChainIndex(lc[2].getChainIndex()));
-			} // end if
+			if (lc[2].getChainIndex() != c.getChainIndex()
+					&& realChainIndex(lc[2].getChainIndex()) != -1) {
+				chains.remove(realChainIndex(lc[2].getChainIndex()));
+			}
 
 		} // end if
 
-		// check for friendly chain to left
+		// chain to left
 		if (l[3] == s.getColor()) {
 
 			Iterator<Stone> it = lc[3].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				c.addToChain(next, m);
+				c.addToChain(next, this.board);
 			} // end while
 
-			if ((lc[3].getChainIndex() != c.getChainIndex())
-					&& (this.getRealChainIndex(lc[3].getChainIndex()) != -1)) {
-				m.removeChain(lc[3]);
-				this.chains
-						.remove(this.getRealChainIndex(lc[3].getChainIndex()));
-			} // end if
-
+			if (lc[3].getChainIndex() != c.getChainIndex()
+					&& realChainIndex(lc[3].getChainIndex()) != -1) {
+				chains.remove(realChainIndex(lc[3].getChainIndex()));
+			}
 		} // end if
 
 		int c0 = -1;
@@ -188,235 +171,266 @@ public class Board {
 
 		if (lc[0] != null) {
 			c0 = lc[0].getChainIndex();
-			if (lc[0].isYan())
-				lc[0].recheckChains(s, m);
-		} // end if
+			if (lc[0].isYan()) {
+				lc[0].recheckChains(s);
+			}
+		}
 
 		if (lc[1] != null) {
 			c1 = lc[1].getChainIndex();
-			if ((lc[1].isYan()) && (c0 != c1))
-				lc[1].recheckChains(s, m);
-		} // end if
+			if (lc[1].isYan() && c0 != c1) {
+				lc[1].recheckChains(s);
+			}
 
+		}
 		if (lc[2] != null) {
 			c2 = lc[2].getChainIndex();
-			if ((lc[2].isYan()) && (c2 != c0) && (c2 != c1))
-				lc[2].recheckChains(s, m);
-		} // end if
+			if (lc[2].isYan() && c2 != c0 && c2 != c1) {
+				lc[2].recheckChains(s);
+			}
 
+		}
 		if (lc[3] != null) {
 			c3 = lc[3].getChainIndex();
-			if ((lc[3].isYan()) && (c3 != c0) && (c3 != c1) && (c3 != c2))
-				lc[3].recheckChains(s, m);
-		} // end if
+			if (lc[3].isYan() && c3 != c0 && c3 != c1 && c3 != c2) {
+				lc[3].recheckChains(s);
+			}
+
+		}
 
 		// chain top-left
-		if ((lc[4] != null) && (l[4] == -1) && (lc[4].isYan()))
-			lc[4].realYandetector(m);
+		if (lc[4] != null) {
+			if (l[4] == -1 && lc[4].isYan()) {
+				lc[4].realYandetector();
+			}// end if
+		}
 
 		// chain top-right
-		if ((lc[5] != null) && (l[5] == -1) && (lc[5].isYan()))
-			lc[5].realYandetector(m);
+		if (lc[5] != null) {
+			if (l[5] == -1 && lc[5].isYan()) {
+				lc[5].realYandetector();
+			}// end if
+		}
 
 		// chain bottom-right
-		if ((lc[6] != null) && (l[6] == -1) && (lc[6].isYan()))
-			lc[6].realYandetector(m);
+		if (lc[6] != null) {
+			if (l[6] == -1 && lc[6].isYan()) {
+				lc[6].realYandetector();
+			}// end if
+		}
 
 		// chain bottom-left
-		if ((lc[7] != null) && (l[7] == -1) && (lc[7].isYan()))
-			lc[7].realYandetector(m);
+		if (lc[7] != null) {
+			if (l[7] == -1 && lc[7].isYan()) {
+				lc[7].realYandetector();
+			}// end if
+		}
 
 		// ************Add stone into Wei************************
-		// check for friendly wei above
+		// wei above
 		if (l[0] == s.getColor()) {
 
 			Iterator<Stone> it = lw[0].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				w.addToWei(next, m);
+				w.addToWei(next);
+
 			} // end while
 
-			if ((lw[0].getWeiIndex() != w.getWeiIndex())
-					&& (this.getRealWeiIndex(lw[0].getWeiIndex()) != -1)) {
-				m.removeWei(lw[0]);
-				this.weis.remove(this.getRealWeiIndex(lw[0].getWeiIndex()));
-			} // end if
+			if (lw[0].getWeiIndex() != w.getWeiIndex()
+					&& realWeiIndex(lw[0].getWeiIndex()) != -1) {
+				weis.remove(realWeiIndex(lw[0].getWeiIndex()));
+			}
+		}// end if
 
-		} // end if
-
-		// check for friendly wei to right
+		// wei to right
 		if (l[1] == s.getColor()) {
 
 			Iterator<Stone> it = lw[1].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				w.addToWei(next, m);
+				w.addToWei(next);
+
 			} // end while
 
-			if ((lw[1].getWeiIndex() != w.getWeiIndex())
-					&& (this.getRealWeiIndex(lw[1].getWeiIndex()) != -1)) {
-				m.removeWei(lw[1]);
-				this.weis.remove(this.getRealWeiIndex(lw[1].getWeiIndex()));
-			} // end if
-
+			if (lw[1].getWeiIndex() != w.getWeiIndex()
+					&& realWeiIndex(lw[1].getWeiIndex()) != -1) {
+				weis.remove(realWeiIndex(lw[1].getWeiIndex()));
+			}
 		} // end if
 
-		// check for friendly wei below
+		// wei below
 		if (l[2] == s.getColor()) {
 
 			Iterator<Stone> it = lw[2].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				w.addToWei(next, m);
+				w.addToWei(next);
 			} // end while
 
-			if ((lw[2].getWeiIndex() != w.getWeiIndex())
-					&& (this.getRealWeiIndex(lw[2].getWeiIndex()) != -1)) {
-				m.removeWei(lw[2]);
-				this.weis.remove(this.getRealWeiIndex(lw[2].getWeiIndex()));
-			} // end if
+			if (lw[2].getWeiIndex() != w.getWeiIndex()
+					&& realWeiIndex(lw[2].getWeiIndex()) != -1) {
+				weis.remove(realWeiIndex(lw[2].getWeiIndex()));
+			}
 
 		} // end if
 
-		// check for friendly chain to left
+		// chain to left
 		if (l[3] == s.getColor()) {
 
 			Iterator<Stone> it = lw[3].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				w.addToWei(next, m);
+				w.addToWei(next);
 			} // end while
 
-			if ((lw[3].getWeiIndex() != w.getWeiIndex())
-					&& (this.getRealWeiIndex(lw[3].getWeiIndex()) != -1)) {
-				m.removeWei(lw[3]);
-				this.weis.remove(this.getRealWeiIndex(lw[3].getWeiIndex()));
-			} // end if
-
+			if (lw[3].getWeiIndex() != w.getWeiIndex()
+					&& realWeiIndex(lw[3].getWeiIndex()) != -1) {
+				weis.remove(realWeiIndex(lw[3].getWeiIndex()));
+			}
 		} // end if
 
-		// check for friendly wei to top-left
+		// wei top-left
 		if (l[4] == s.getColor()) {
 
 			Iterator<Stone> it = lw[4].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				w.addToWei(next, m);
+				w.addToWei(next);
 			} // end while
 
-			if ((lw[4].getWeiIndex() != w.getWeiIndex())
-					&& (this.getRealWeiIndex(lw[4].getWeiIndex()) != -1)) {
-				m.removeWei(lw[4]);
-				this.weis.remove(this.getRealWeiIndex(lw[4].getWeiIndex()));
-			} // end if
-
+			if (lw[4].getWeiIndex() != w.getWeiIndex()
+					&& realWeiIndex(lw[4].getWeiIndex()) != -1) {
+				weis.remove(realWeiIndex(lw[4].getWeiIndex()));
+			}
 		}// end if
 
-		// check for friendly wei to top-right
+		// wei top-right
 		if (l[5] == s.getColor()) {
 
 			Iterator<Stone> it = lw[5].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				w.addToWei(next, m);
+				w.addToWei(next);
 			} // end while
 
-			if ((lw[5].getWeiIndex() != w.getWeiIndex())
-					&& (this.getRealWeiIndex(lw[5].getWeiIndex()) != -1)) {
-				m.removeWei(lw[5]);
-				this.weis.remove(this.getRealWeiIndex(lw[5].getWeiIndex()));
-			} // end if
+			if (lw[5].getWeiIndex() != w.getWeiIndex()
+					&& realWeiIndex(lw[5].getWeiIndex()) != -1) {
+				weis.remove(realWeiIndex(lw[5].getWeiIndex()));
+			}
 
-		} // end if
+		}// end if
 
-		// check for friendly wei to bottom-right
+		// wei bottom-right
 		if (l[6] == s.getColor()) {
 
 			Iterator<Stone> it = lw[6].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				w.addToWei(next, m);
+				w.addToWei(next);
 			} // end while
 
-			if ((lw[6].getWeiIndex() != w.getWeiIndex())
-					&& (this.getRealWeiIndex(lw[6].getWeiIndex()) != -1)) {
-				m.removeWei(lw[6]);
-				this.weis.remove(this.getRealWeiIndex(lw[6].getWeiIndex()));
-			} // end if
+			if (lw[6].getWeiIndex() != w.getWeiIndex()
+					&& realWeiIndex(lw[6].getWeiIndex()) != -1) {
+				weis.remove(realWeiIndex(lw[6].getWeiIndex()));
+			}
+		}// end if
 
-		} // end if
-
-		// check for friendly wei to bottom-left
+		// wei bottom-left
 		if (l[7] == s.getColor()) {
 
 			Iterator<Stone> it = lw[7].iterator();
 			while (it.hasNext()) {
 				Stone next = it.next();
-				w.addToWei(next, m);
+				w.addToWei(next);
 			} // end while
 
-			if ((lw[7].getWeiIndex() != w.getWeiIndex())
-					&& (this.getRealWeiIndex(lw[7].getWeiIndex()) != -1)) {
-				m.removeWei(lw[7]);
-				this.weis.remove(this.getRealWeiIndex(lw[7].getWeiIndex()));
-			} // end if
-
-		} // end if
+			if (lw[7].getWeiIndex() != w.getWeiIndex()
+					&& realWeiIndex(lw[7].getWeiIndex()) != -1) {
+				weis.remove(realWeiIndex(lw[7].getWeiIndex()));
+			}
+		}// end if
 
 		// detect if wei contains Yan. If so, turn them into Yan and add into
 		// Chain list.
 
-		// if stone color = 3, trade it as empty, so that we do not call
+		// if stone color = 3 or 4, trade it as empty, so that we do not call
 		// yanDetector() and tizi()
-		if (s.getColor() != 3) {
-			w.yanDetector(m);
-			this.tizi(m);
-		} // end if
+		ArrayList<Chain> removedChains = new ArrayList<Chain>();
+		if (s.getColor() != 3 && s.getColor() != 4) {
+			w.yanDetector();
+			removedChains = this.tizi();
+		}
 
+		return removedChains;
 	} // end addStone()
 
-	public Board removeStone(Point p, Move m) {
-		Stone s = this.stones[p.x][p.y];
-		m.removeStone(s);
-		this.stones[p.x][p.y] = null;
-		this.printBoard();
-		return this;
-	} // end removeStone()
-
-	// clean chain to take away dead stones
-	public void tizi(Move m) {
-
+	public ArrayList<Chain> tizi() {
+		ArrayList<Chain> removedChains = new ArrayList<Chain>();
 		// check each chain, if chain's Qis equals to zero, change them into Yan
 		for (int i = 0; i < this.chains.size(); i++) {
-
 			Chain c = this.chains.get(i);
-			c.recheckQis(m);
-
+			c.recheckQis();
 			Stone s = c.first();
 			Point p = s.getLocation();
+			Wei w = s.getWei();
 
 			// if chain c's Qis equals to zero , turn all the stone into Qis
-			if ((c.getQis().size() == 0) && (!c.isYan())) {
+			if (c.getQis().size() == 0 && !c.isYan()) {
+
+				Chain copyC = new Chain(this);
+				Iterator<Stone> it3 = c.iterator();
+				Stone firstStone = c.first();
+				if (firstStone.getColor() != 4 && firstStone.getColor() != 3) {
+					// make a copy of chain
+					while (it3.hasNext()) {
+						Stone next = it3.next();
+						copyC.add((Stone) next.clone());
+					}
+					removedChains.add(copyC);
+				}
 
 				int r = 0;
 				Iterator<Stone> it2 = c.iterator();
-
 				while (it2.hasNext()) {
 
 					Stone next = it2.next();
-					if (next.getColor() != 3) {
-						this.lastTiziPosition = next.getLocation();
-						r++;
-					} // end if
 
-					m.removeStone(next);
+					if (next.getWei() != null
+							&& realWeiIndex(next.getWei().getWeiIndex()) != -1) {
+						if (w.size() == 0) {
+							this.weis.remove(realWeiIndex(next.getWei()
+									.getWeiIndex()));
+						} else if (w.size() == 1) {
+							w.remove(next);
+							this.weis.remove(realWeiIndex(next.getWei()
+									.getWeiIndex()));
+						} else {
+							w.remove(next);
+						}
+					}
+
+					if (next.getColor() == 1) {
+						next.setBelongto(0);
+					} else if (next.getColor() == 0) {
+						next.setBelongto(1);
+					} else if (next.getColor() == 3) {
+						next.setBelongto(1);
+					} else if (next.getColor() == 4) {
+						next.setBelongto(0);
+					}
+
+					if (next.getColor() != 3 && next.getColor() != 4) {
+						LastTiziPosition = next.getLocation();
+						r++;
+					}
+
 					next.setColor(-1);
 					next.setYan(true);
 
 					s = next;
 					p = s.getLocation();
-					this.stones[p.x][p.y] = s;
-					m.addStone(next);
+					this.board[p.x][p.y] = s;
 
 					// Add Qis back to surrounding stones
 					Point top = new Point(p.x, p.y + 1);
@@ -424,105 +438,142 @@ public class Board {
 					Point bottom = new Point(p.x, p.y - 1);
 					Point left = new Point(p.x - 1, p.y);
 
-					Stone stTop = new Stone(this, top);
-					Stone stRight = new Stone(this, right);
-					Stone stBottom = new Stone(this, bottom);
-					Stone stLeft = new Stone(this, left);
+					Stone stTop = new Stone();
+					Stone stRight = new Stone();
+					Stone stBottom = new Stone();
+					Stone stLeft = new Stone();
 
-					if (top.y < this.size) {
-						stTop = this.getStone(top);
-						if (stTop.getChain() != null)
-							stTop.getChain().addBackQis(stTop, s, m);
-					} // end if
+					if (top.y < size) {
+						stTop = this.board[top.x][top.y];
+						stTop.getChain().addBackQis(stTop, s);
+					}
 
-					if ((right.x < this.size) && (!stRight.isYan())) {
-						stRight = this.getStone(right);
-						if (stRight.getChain() != null)
-							stRight.getChain().addBackQis(stRight, s, m);
-					} // end if
+					if (right.x < size && (!stRight.isYan())) {
+						stRight = this.board[right.x][right.y];
+						stRight.getChain().addBackQis(stRight, s);
+					}
 
 					if (bottom.y > -1) {
-						stBottom = this.getStone(bottom);
-						if (stBottom.getChain() != null)
-							stBottom.getChain().addBackQis(stBottom, s, m);
-					} // end if
+						stBottom = this.board[bottom.x][bottom.y];
+						stBottom.getChain().addBackQis(stBottom, s);
+					}
 
 					if (left.x > -1) {
-						stLeft = this.getStone(left);
-						if (stLeft.getChain() != null)
-							stLeft.getChain().addBackQis(stLeft, s, m);
-					} // end if
-
+						stLeft = this.board[left.x][left.y];
+						stLeft.getChain().addBackQis(stLeft, s);
+					}
 				} // end while
 
-				this.lastTiziNum = r;
+				LastTiziNum = r;
 				c.setYan(true);
 
 				// clean the Qis for the Yan
-				Iterator<Qi> it3 = c.getQis().iterator();
-				while (it3.hasNext()) {
-					Qi q = it3.next();
-					m.removeChainQi(c, q);
-				} // end while
 				TreeSet<Qi> empty = new TreeSet<Qi>();
 				c.setQis(empty);
-
-				// RealYandetector
-				c.realYandetector(m);
+				c.realYandetector();
 
 			} // end if
-
 		} // end for
+		return removedChains;
+	}// end tizi()
 
-	} // end tizi()
-
-	public void newGame() {
-		this.stones = new Stone[this.size][this.size];
-		this.chains = new ArrayList<Chain>();
-		this.weis = new ArrayList<Wei>();
-	} // end newGame()
-
-	public Stone getStone(Point p) {
-		Stone result = this.stones[p.x][p.y];
-		if (result == null)
-			result = new Stone(this, p);
-		return result;
-	} // end getStone()
-
-	public int getRealChainIndex(int indexFound) {
+	public int realChainIndex(int indexFound) {
 		int result = 0;
-		for (int i = 0; i < this.chains.size(); i++) {
-			if (indexFound == this.chains.get(i).getChainIndex())
+		for (int i = 0; i < chains.size(); i++) {
+			if (indexFound == chains.get(i).getChainIndex()) {
 				return result;
-			else
+			} else {
 				result++;
-		} // end for
+			}
+		}
+		// did not find the result
 		return -1;
-	} // end getRealChainIndex()
+	}// end realChainIndex()
 
-	public int getRealWeiIndex(int indexFound) {
+	public int realWeiIndex(int indexFound) {
 		int result = 0;
-		for (int i = 0; i < this.weis.size(); i++) {
-			if (indexFound == this.weis.get(i).getWeiIndex())
+		for (int i = 0; i < weis.size(); i++) {
+			if (indexFound == weis.get(i).getWeiIndex()) {
 				return result;
-			else
+			} else {
 				result++;
-		} // end for
+			}
+		}
+		// did not find the result
 		return -1;
-	} // end getRealWeiIndex()
+	}// end rrealWeiIndex()
+
+	public double[] getScores() {
+		double[] scores = { 0.0f, 0.0f };
+		for (int j = this.size - 1; j > -1; j--) {
+			for (int i = 0; i < this.size; i++) {
+				if (this.board[i][j] != null) {
+					if (this.board[i][j].getBelongto() == 0)
+						scores[0]++;
+					else if (this.board[i][j].getBelongto() == 1)
+						scores[1]++;
+				} // end if
+			} // end for
+		} // end for
+		scores[1] += this.Komi;
+		return scores;
+	} // end scores
+
+	public void printScores() {
+
+		double scoreBlack = 0;
+		double scoreWhite = 0;
+		for (int j = this.size - 1; j > -1; j--) {
+			for (int i = 0; i < this.size; i++) {
+
+				if (this.board[i][j] != null) {
+					if (this.board[i][j].getBelongto() == 0) {
+						scoreBlack++;
+					} else if (this.board[i][j].getBelongto() == 1) {
+						scoreWhite++;
+					}
+				}
+			} // end for
+		}
+
+		scoreWhite = scoreWhite + Komi;
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		System.out.println("Score:");
+		System.out.println("Komi =" + Komi);
+		System.out.println("Black Player =" + scoreBlack);
+		System.out.println("White Player =" + scoreWhite);
+
+		if (scoreBlack > scoreWhite) {
+			System.out.println("Bloack Player won this game!");
+		} else {
+			System.out.println("White Player won this game!");
+		}
+
+	}
+
+	public void printMoves() {
+		Iterator<Move> it = moves.iterator();
+		while (it.hasNext()) {
+			Move next = it.next();
+			System.out.println(next.toString());
+			System.out.println("========================");
+
+		}
+	}
 
 	public void printChains() {
 		System.out.println("" + this.chains.size() + " chains");
 		for (int i = 0; i < this.chains.size(); i++) {
 			System.out.println("*************");
+
 			Chain c = this.chains.get(i);
-			System.out.println("Chain " + c.getChainIndex() + ": " + "isYan = "
-					+ c.isYan() + " isZhenYan = " + c.isZhenYan()
-					+ " isJiaYan = " + c.isJiaYan());
-			System.out.println(c.toString().replaceAll("], ", "]\n"));
-			System.out.println("Stone: " + Integer.toString(c.size()));
-			System.out.println(c.getQis().toString().replaceAll("], ", "]\n"));
-			System.out.println("liberties: "
+			System.out.println("Chain " + c.getChainIndex() + ": ["
+					+ "isYan = " + c.isYan() + " isZhenYan = " + c.isZhenYan()
+					+ " isJiaYan = " + c.isJiaYan() + "]");
+			System.out.println(c.toString().replaceAll("],", "]\n"));
+			System.out.println("Total Stone #: " + Integer.toString(c.size()));
+			System.out.println(c.getQis().toString().replaceAll("],", "]\n"));
+			System.out.println("Total Qi #: "
 					+ Integer.toString(c.getQis().size()));
 		} // end for
 		System.out.println("=================");
@@ -532,65 +583,55 @@ public class Board {
 		System.out.println("" + this.weis.size() + " wei");
 		for (int i = 0; i < this.weis.size(); i++) {
 			System.out.println("*************");
+
 			Wei w = this.weis.get(i);
 			System.out.println("Wei " + w.getWeiIndex());
-			System.out.println(w.toString().replaceAll("], ", "]\n"));
-			System.out.println("Stone: " + Integer.toString(w.size()));
+			System.out.println(w.toString().replaceAll("],", "]\n"));
+			System.out.println("Total Stone #: " + Integer.toString(w.size()));
 		} // end for
 		System.out.println("=================");
-	} // end printWeis()
+	} // end printChains()
 
 	public void printBoard() {
 		for (int j = this.size - 1; j > -1; j--) {
 			for (int i = 0; i < this.size; i++) {
-				if (this.stones[i][j] != null) {
-					if ((this.stones[i][j].getColor() == 0)
-							|| (this.stones[i][j].getColor() == 1)
-							|| (this.stones[i][j].getColor() == 3))
-						System.out.print("[+" + this.stones[i][j].getColor()
+				if (this.board[i][j] != null) {
+					if (this.board[i][j].getColor() == 0
+							|| this.board[i][j].getColor() == 1
+							|| this.board[i][j].getColor() == 3
+							|| this.board[i][j].getColor() == 4) {
+						System.out.print("[+" + this.board[i][j].getColor()
 								+ "]");
-					else
-						System.out.print("[" + this.stones[i][j].getColor()
+					} else {
+						System.out.print("[" + this.board[i][j].getColor()
 								+ "]");
+					}
 				} else
 					System.out.print("[**]");
 				System.out.print(" ");
 			} // end for
 			System.out.println(" ");
 		} // end for
+
 		System.out.println();
+
 	} // end printBoard()
 
-	/*
-	 * getters and setters
-	 */
-	public void removeChain(int index) {
-		this.chains.remove(index);
-	} // end removeChain()
+	public void newGame() {
+		this.board = new Stone[this.size][this.size];
+		this.chains = new ArrayList<Chain>();
+	} // end newGame()
 
-	public ArrayList<Chain> getChains() {
-		return this.chains;
-	} // end getStones()
+	public Stone getStone(Point p) {
+		Stone result = this.board[p.x][p.y];
+		if (result == null)
+			result = new Stone(p);
+		return result;
+	} // end getStone()
 
-	public void setChains(ArrayList<Chain> c) {
-		this.chains = c;
-	} // end setStones()
-
-	public ArrayList<Wei> getWeis() {
-		return this.weis;
-	} // end getWeis()
-
-	public void setWeis(ArrayList<Wei> w) {
-		this.weis = w;
-	} // end setWeis()
-
-	public Stone[][] getStones() {
-		return this.stones;
-	} // end getStones()
-
-	public void setStones(Stone[][] s) {
-		this.stones = s;
-	} // end setStones()
+	public Stone[][] getBoard() {
+		return this.board;
+	} // end getBoard()
 
 	public int getSize() {
 		return this.size;
@@ -600,52 +641,11 @@ public class Board {
 		this.size = size;
 	} // end setSize()
 
-	public Point getLastTiziPosition() {
-		return this.lastTiziPosition;
-	} // end getLastTiziPosition
-
-	public void setLastTiziPosition(Point lastTiziPosition) {
-		this.lastTiziPosition = lastTiziPosition;
-	} // end setLastTiziPosition()
-
-	public int getLastTiziNum() {
-		return this.lastTiziNum;
-	} // end getLastTiziNum()
-
-	public void setLastTiziNum(int lastTiziNum) {
-		this.lastTiziNum = lastTiziNum;
-	} // end setLastTiziNum()
-
-	public int getKomi() {
-		return this.komi;
-	} // end getKomi()
-
-	public void setKomi(int komi) {
-		this.komi = komi;
-	} // end setKomi()
-
-	public GamePlay getGamePlay() {
-		return gamePlay;
+	public void setMoves(Stack<Move> moves) {
+		this.moves = moves;
 	}
 
-	public void setGamePlay(GamePlay gamePlay) {
-		this.gamePlay = gamePlay;
+	public Stack<Move> getMoves() {
+		return moves;
 	}
-
-	public Point getLocation() {
-		return this.location;
-	}
-
-	public void setLocation(Point l) {
-		this.location = l;
-	}
-
-	public String getMode() {
-		return mode;
-	}
-
-	public void setMode(String mode) {
-		this.mode = mode;
-	}
-
 } // end class

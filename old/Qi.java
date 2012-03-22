@@ -6,11 +6,25 @@ public class Qi implements Comparable<Qi> {
 
 	private int x;
 	private int y;
+
+
 	private int boardSize;
+
+	public Qi(int s) {
+		this.x = 0;
+		this.y = 0;
+		this.boardSize = s;
+	} // end Qi()
 
 	public Qi(Point p, int s) {
 		this.x = p.x;
 		this.y = p.y;
+		this.boardSize = s;
+	} // end Qi()
+
+	public Qi(int x, int y, int s) {
+		this.x = x;
+		this.y = y;
 		this.boardSize = s;
 	} // end Qi()
 
@@ -63,7 +77,7 @@ public class Qi implements Comparable<Qi> {
 
 	@Override
 	public String toString() {
-		return "Qi [x=" + x + ", y=" + y + "]";
+		return "Qi [x=" + x + ", y=" + y + ", boardSize=" + boardSize + "]";
 	} // end toString()
 
 } // end class

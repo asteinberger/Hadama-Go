@@ -45,10 +45,12 @@ public class Chain extends TreeSet<Stone> {
 	 * and has all four liberties.
 	 */
 	public Chain(Board b) {
+
 		boardSize = b.getSize();
 		this.goboard = b;
 		chainNum = counterOfChain;
 		counterOfChain++;
+
 	} // end constructor
 
 	/**
@@ -61,16 +63,12 @@ public class Chain extends TreeSet<Stone> {
 	 * @param s
 	 *            the size of the goboard the chain belongs to
 	 */
-	public Chain(Board b, Stone h, Move m) {
-		this.addToChain(h, m);
+	public Chain(Board b, Stone h) {
+		this.addToChain(h, b.getBoard());
 		boardSize = b.getSize();
 		this.goboard = b;
 
 	} // end constructor
-
-	public int getChainIndex() {
-		return chainNum;
-	}
 
 	/**
 	 * Add a stone to the chain. This only works if the stone being added is the
@@ -79,16 +77,13 @@ public class Chain extends TreeSet<Stone> {
 	 * @param s
 	 *            stone to add to chain
 	 */
-	public void addToChain(Stone s, Move m) {
+	public void addToChain(Stone s, Stone[][] b) {
 
 		// have to be the same color stone
 		if (!this.contains(s)) {
-			Board b = s.getBoard();
 			Point p = s.getLocation();
-			m.removeChainStone(s.getChain(), s);
 			s.setChain(this);
 			this.add(s);
-			m.addChainStone(this, s);
 
 			Point top = new Point(p.x, p.y + 1);
 			Point right = new Point(p.x + 1, p.y);
@@ -101,10 +96,10 @@ public class Chain extends TreeSet<Stone> {
 			Qi qLeft = new Qi(left, this.boardSize);
 			Qi qP = new Qi(p, this.boardSize);
 
-			Stone stTop = new Stone(b, top);
-			Stone stRight = new Stone(b, right);
-			Stone stBottom = new Stone(b, bottom);
-			Stone stLeft = new Stone(b, left);
+			Stone stTop = new Stone(top);
+			Stone stRight = new Stone(right);
+			Stone stBottom = new Stone(bottom);
+			Stone stLeft = new Stone(left);
 
 			if (top.y < this.boardSize)
 				stTop = this.goboard.getStone(top);
@@ -119,19 +114,16 @@ public class Chain extends TreeSet<Stone> {
 				stLeft = this.goboard.getStone(left);
 
 			this.Qis.remove(qP);
-			m.removeChainQi(this, qP);
 
 			if ((stTop.getColor() == -1) && (!this.Qis.contains(qTop))
 					&& (p.y < this.boardSize - 1)) {
 				this.Qis.add(qTop);
-				m.addChainQi(this, qTop);
 			} else {
 
 				if (stTop.getChain() != null) {
 					TreeSet<Qi> qis = stTop.getChain().getQis();
-					if (s.getColor() != 3) {
+					if (s.getColor() != 3 && s.getColor() != 4) {
 						qis.remove(qP);
-						m.removeChainQi(stTop.getChain(), qP);
 					}
 					stTop.getChain().setQis(qis);
 				}
@@ -140,13 +132,11 @@ public class Chain extends TreeSet<Stone> {
 			if ((stRight.getColor() == -1) && (!this.Qis.contains(qRight))
 					&& (p.x < this.boardSize - 1)) {
 				this.Qis.add(qRight);
-				m.addChainQi(this, qRight);
 			} else {
 				if (stRight.getChain() != null) {
 					TreeSet<Qi> qis = stRight.getChain().getQis();
-					if (s.getColor() != 3) {
+					if (s.getColor() != 3 && s.getColor() != 4) {
 						qis.remove(qP);
-						m.removeChainQi(stRight.getChain(), qP);
 					}
 					stRight.getChain().setQis(qis);
 				}
@@ -155,13 +145,11 @@ public class Chain extends TreeSet<Stone> {
 			if ((stBottom.getColor() == -1) && (!this.Qis.contains(qBottom))
 					&& (p.y > 0)) {
 				this.Qis.add(qBottom);
-				m.addChainQi(this, qBottom);
 			} else {
 				if (stBottom.getChain() != null) {
 					TreeSet<Qi> qis = stBottom.getChain().getQis();
-					if (s.getColor() != 3) {
+					if (s.getColor() != 3 && s.getColor() != 4) {
 						qis.remove(qP);
-						m.removeChainQi(stBottom.getChain(), qP);
 					}
 					stBottom.getChain().setQis(qis);
 				}
@@ -170,14 +158,12 @@ public class Chain extends TreeSet<Stone> {
 			if ((stLeft.getColor() == -1) && (!this.Qis.contains(qLeft))
 					&& (p.x > 0)) {
 				this.Qis.add(qLeft);
-				m.addChainQi(this, qLeft);
 			} else {
 				if (stLeft.getChain() != null) {
 
 					TreeSet<Qi> qis = stLeft.getChain().getQis();
-					if (s.getColor() != 3) {
+					if (s.getColor() != 3 && s.getColor() != 4) {
 						qis.remove(qP);
-						m.removeChainQi(stLeft.getChain(), qP);
 					}
 					stLeft.getChain().setQis(qis);
 
@@ -185,31 +171,29 @@ public class Chain extends TreeSet<Stone> {
 			}
 
 			// if the adding stone's color is 1 or 2
-			// then trade color 3 as a empty space
+			// then trade color 3 and 4 as a empty space
 			if (s.getColor() == 1 || s.getColor() == 0) {
 
-				if ((stTop.getColor() == 3) && (!this.Qis.contains(qTop))
+				if ((stTop.getColor() == 3 || stTop.getColor() == 4)
+						&& (!this.Qis.contains(qTop))
 						&& (p.y < this.boardSize - 1)) {
 					this.Qis.add(qTop);
-					m.addChainQi(this, qTop);
 				}
 
-				if ((stRight.getColor() == 3) && (!this.Qis.contains(qRight))
+				if ((stRight.getColor() == 3 || stRight.getColor() == 4)
+						&& (!this.Qis.contains(qRight))
 						&& (p.x < this.boardSize - 1)) {
 					this.Qis.add(qRight);
-					m.addChainQi(this, qRight);
 				}
 
-				if ((stBottom.getColor() == 3) && (!this.Qis.contains(qBottom))
-						&& (p.y > 0)) {
+				if ((stBottom.getColor() == 3 || stBottom.getColor() == 4)
+						&& (!this.Qis.contains(qBottom)) && (p.y > 0)) {
 					this.Qis.add(qBottom);
-					m.addChainQi(this, qBottom);
 				}
 
-				if ((stLeft.getColor() == 3) && (!this.Qis.contains(qLeft))
-						&& (p.x > 0)) {
+				if ((stLeft.getColor() == 3 || stLeft.getColor() == 4)
+						&& (!this.Qis.contains(qLeft)) && (p.x > 0)) {
 					this.Qis.add(qLeft);
-					m.addChainQi(this, qLeft);
 				}
 
 			} // end if
@@ -217,27 +201,28 @@ public class Chain extends TreeSet<Stone> {
 		}
 	} // end addStone()
 
-	public void addBackQis(Stone s, Stone yan, Move m) {
+	public void addBackQis(Stone s, Stone yan) {
 
 		TreeSet<Qi> q = s.getChain().getQis();
 		Qi q2 = new Qi(yan.getLocation(), this.boardSize);
-		if ((s.getColor() != -1) && (!q.contains(q2))) {
-			m.addChainQi(this, q2);
+		if ((s.getColor() != -1) && (!q.contains(q2)))
 			q.add(q2);
-		}
 
 	} // end addBackQis()
 
-	public void recheckQis(Move m) {
+	//We only go through the Qi List and update Qis based on it
+	public void recheckQis() {
 
 		TreeSet<Qi> toRemove = new TreeSet<Qi>();
 		Iterator<Qi> it = this.Qis.iterator();
 		while (it.hasNext()) {
 			Qi q = it.next();
+
+			// we have to make sure that x, y did not go out of board
 			Point p = new Point(q.getX(), q.getY());
 			Stone s = this.goboard.getStone(p);
+
 			if ((s.getColor() == 1) || (s.getColor() == 0)) {
-				m.removeChainQi(this, q);
 				toRemove.add(q);
 			}
 		} // end while
@@ -250,64 +235,128 @@ public class Chain extends TreeSet<Stone> {
 
 	} // end checkQis()
 
-	public void updateChains(Stone currentS, Move m) {
+	// We go through each stone inside the chain and check its Qis
+	public void deeplyrecheckQis() {
+
+		TreeSet<Qi> newQi = new TreeSet<Qi>();
+		Iterator<Stone> it = this.iterator();
+		while (it.hasNext()) {
+			
+			Stone next = it.next();
+			int[] l = next.checkQi(goboard.getBoard());
+			Point lp = next.getLocation();
+			
+			//chain above
+			if (l[0] == -1 || l[0] == 3 || l[0] == 4) {
+				if (lp.y < this.boardSize - 1) {
+					Point p = new Point(lp.x, lp.y + 1);
+					Qi q = new Qi(p, this.boardSize);
+					if (!newQi.contains(q)) {
+						newQi.add(q);
+					}
+				}
+
+			}// end if
+
+			// chain to right
+			if (l[1] == -1 || l[1] == 3 || l[1] == 4) {
+				if (lp.x < this.boardSize - 1) {
+					Point p = new Point(lp.x + 1, lp.y);
+					Qi q = new Qi(p, this.boardSize);
+					if (!newQi.contains(q)) {
+						newQi.add(q);
+					}
+				}
+			} // end if
+
+			// chain below
+			if (l[2] == -1 || l[2] == 3 || l[2] == 4) {
+				if (lp.y > 0) {
+					Point p = new Point(lp.x, lp.y - 1);
+					Qi q = new Qi(p, this.boardSize);
+					if (!newQi.contains(q)) {
+						newQi.add(q);
+					}
+				}
+			} // end if
+
+			// chain to left
+			if (l[3] == -1 || l[3] == 3 || l[3] == 4) {
+				if (lp.x > 0) {
+					Point p = new Point(lp.x - 1, lp.y);
+					Qi q = new Qi(p, this.boardSize);
+					if (!newQi.contains(q)) {
+						newQi.add(q);
+					}
+				}
+
+			} // end if
+		} // end while
+
+		this.Qis = newQi;
+	} // end checkQis()
+
+	public void updateChains(Stone currentS) {
 
 		// remove the stone not belong to the chain anymore
 		Chain c = new Chain(this.goboard);
 		c = this;
+		
 		Iterator<Stone> it = this.iterator();
 		while (it.hasNext()) {
 			Stone s = it.next();
 			Point p = s.getLocation();
-			m.removeChainStone(c, s);
-			this.goboard.getStones()[p.x][p.y] = null;
+			this.goboard.getBoard()[p.x][p.y] = null;
 		}
 
-		m.removeChain(c);
-		this.goboard.removeChain(this.goboard.getRealChainIndex(this
+		this.goboard.chains.remove(this.goboard.realChainIndex(this
 				.getChainIndex()));
+		
 		// Add back all stones back to board
-
-		m.removeChainStone(c, currentS);
-		c.removeStone(currentS, m);
+		c.removeStone(currentS);
 		Iterator<Stone> it2 = c.iterator();
 		while (it2.hasNext()) {
 			Stone s = it2.next();
-			this.goboard.addStone(s, m);
+			this.goboard.addStone(s);
 		}
 
 	} // end checkQis()
 
-	public void recheckChains(Stone currentS, Move m) {
+	
+	public void recheckChains(Stone currentS) {
 
 		// remove the stone not belong to the chain anymore
 		Chain c = new Chain(this.goboard);
 		c = this;
+		int color = c.first().getBelongto();
+
 		Iterator<Stone> it = this.iterator();
 		while (it.hasNext()) {
 			Stone s = it.next();
 			Point p = s.getLocation();
-			m.removeChainStone(c, s);
-			this.goboard.getStones()[p.x][p.y] = null;
+			this.goboard.getBoard()[p.x][p.y] = null;
 		}
 
-		m.removeChain(c);
-		this.goboard.removeChain(this.goboard.getRealChainIndex(this
+		this.goboard.chains.remove(this.goboard.realChainIndex(this
 				.getChainIndex()));
 		// Add back all stones back to board
 
-		m.removeChainStone(c, currentS);
-		c.removeStone(currentS, m);
+		c.removeStone(currentS);
 		Iterator<Stone> it2 = c.iterator();
 		while (it2.hasNext()) {
 			Stone s = it2.next();
-			s.setColor(3);
-			this.goboard.addStone(s, m);
+			if (color == 0) {
+				s.setColor(4);
+			} else {
+				s.setColor(3);
+			}
+
+			this.goboard.addStone(s);
 		}
 
 	} // end checkQis()
 
-	public void realYandetector(Move m) {
+	public void realYandetector() {
 		// the pass in chain is Yan
 		Iterator<Stone> it = this.iterator();
 		int totalnumofYanjiao = 0;
@@ -315,16 +364,16 @@ public class Chain extends TreeSet<Stone> {
 		while (it.hasNext()) {
 
 			Stone s = it.next();
-			int[] l = s.checkQiforYan(this.goboard);
+			int[] l = s.checkQiforYan(this.goboard.getBoard());
 			int numOfYanjiao = 0;
 			int numOfEdge = 0;
 
 			for (int i = 0; i < 8; i++) {
 
-				if (l[i] == -1 || l[i] == 3) {
+				if (l[i] == -1 || l[i] == 3 || l[i] == 4) {
 					numOfYanjiao++;
 				}
-				if (l[i] == 4) {
+				if (l[i] == 5) {
 					numOfEdge++;
 
 				}
@@ -334,56 +383,41 @@ public class Chain extends TreeSet<Stone> {
 			totalnumofEdge += numOfEdge;
 		}
 
-		// System.out.println(totalnumofYanjiao);
-		// System.out.println(totalnumofEdge);
-
 		if (totalnumofYanjiao <= 1) {
 
 			if (totalnumofEdge > 0 && totalnumofYanjiao == 0) {
 				Iterator<Stone> it2 = this.iterator();
 				while (it2.hasNext()) {
 					Stone s = it2.next();
-					m.removeChainStone(this, s);
 					s.setZhenYan(true);
 					s.setJiaYan(false);
-					m.addChainStone(this, s);
 				}
 
-				m.removeChain(this);
 				this.setZhenYan(true);
 				this.setJiaYan(false);
-				m.addChain(this);
 
 			}
 			if (totalnumofEdge == 0 && totalnumofYanjiao <= 1) {
 				Iterator<Stone> it2 = this.iterator();
 				while (it2.hasNext()) {
 					Stone s = it2.next();
-					m.removeChainStone(this, s);
 					s.setZhenYan(true);
 					s.setJiaYan(false);
-					m.addChainStone(this, s);
 				}
 
-				m.removeChain(this);
 				this.setZhenYan(true);
 				this.setJiaYan(false);
-				m.addChain(this);
 			}
 			if (totalnumofEdge > 0 && totalnumofYanjiao == 1) {
 
 				Iterator<Stone> it2 = this.iterator();
 				while (it2.hasNext()) {
 					Stone s = it2.next();
-					m.removeChainStone(this, s);
 					s.setJiaYan(true);
 					s.setZhenYan(false);
-					m.addChainStone(this, s);
 				}
-				m.removeChain(this);
 				this.setJiaYan(true);
 				this.setZhenYan(false);
-				m.addChain(this);
 
 			}
 
@@ -392,15 +426,11 @@ public class Chain extends TreeSet<Stone> {
 			Iterator<Stone> it2 = this.iterator();
 			while (it2.hasNext()) {
 				Stone s = it2.next();
-				m.removeChainStone(this, s);
 				s.setJiaYan(true);
 				s.setZhenYan(false);
-				m.addChainStone(this, s);
 			}
-			m.removeChain(this);
 			this.setJiaYan(true);
 			this.setZhenYan(false);
-			m.addChain(this);
 		}
 	}
 
@@ -413,7 +443,7 @@ public class Chain extends TreeSet<Stone> {
 	} // end getToggledColor()
 
 	// Remove the Stone from ChainList
-	public void removeStone(Stone s, Move m) {
+	public void removeStone(Stone s) {
 
 		Point p = s.getLocation();
 
@@ -421,11 +451,14 @@ public class Chain extends TreeSet<Stone> {
 		while (it.hasNext()) {
 			Stone next = it.next();
 			if (next.getLocation().equals(p)) {
-				m.removeChainStone(this, next);
 				this.remove(next);
 				break;
 			}
 		} // end while
+	}
+
+	public int getChainIndex() {
+		return chainNum;
 	}
 
 	public TreeSet<Qi> getQis() {
