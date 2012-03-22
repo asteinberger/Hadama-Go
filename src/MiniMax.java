@@ -1,3 +1,5 @@
+import java.awt.Point;
+
 /**
  * @author Adam Steinberger
  * 
@@ -25,14 +27,32 @@ public class MiniMax {
 		} else {
 			for (int row = 0; row < this.size; row++) {
 				for (int col = 0; col < this.size; col++) {
-					if (game.validMove(row, col, 0)) {
-						game.placePiece(game.getGoboard(), 0);
-						double value = minValue(game);
-						game.undoMove(row, col);
-						if (value > result) {
-							result = value;
-						} // end if
-					} // end if
+
+					System.out.println("==============");
+					System.out.println("MaxValue @ " + Integer.toString(row)
+							+ ", " + Integer.toString(col));
+
+					// if (game.validMove(row, col)) {
+					game.setCurrLocation(new Point(row, col));
+
+					game.placePiece(game.getGoboard(), 0);
+					HadamaGo.getGoPanel().paint(
+							HadamaGo.getGoPanel().getGraphics());
+
+					double value = minValue(game);
+					System.out.println("Value = " + Double.toString(value));
+
+					game.undoMove(game.getGoboard());
+					HadamaGo.getGoPanel().paint(
+							HadamaGo.getGoPanel().getGraphics());
+
+					if (value > result)
+						result = value;
+
+					System.out.println("Max Value So Far = "
+							+ Double.toString(value));
+
+					// } // end if
 				} // end for
 			} // end for
 		} // end if
@@ -51,14 +71,31 @@ public class MiniMax {
 		} else {
 			for (int row = 0; row < this.size; row++) {
 				for (int col = 0; col < this.size; col++) {
-					if (game.validMove(row, col)) {
-						game.makeMove(row, col);
-						double value = maxValue(game);
-						game.undoMove(row, col);
-						if (value < result) {
-							result = value;
-						} // end if
-					} // end if
+
+					System.out.println("==============");
+					System.out.println("MinValue @ " + Integer.toString(row)
+							+ ", " + Integer.toString(col));
+
+					// if (game.validMove(row, col)) {
+					game.setCurrLocation(new Point(row, col));
+					game.placePiece(game.getGoboard(), 1);
+					HadamaGo.getGoPanel().paint(
+							HadamaGo.getGoPanel().getGraphics());
+
+					double value = maxValue(game);
+					System.out.println("Value = " + Double.toString(value));
+
+					game.undoMove(game.getGoboard());
+					HadamaGo.getGoPanel().paint(
+							HadamaGo.getGoPanel().getGraphics());
+
+					if (value < result)
+						result = value;
+
+					System.out.println("Min Value So Far = "
+							+ Double.toString(value));
+
+					// } // end if
 				} // end for
 			} // end for
 		} // end if
@@ -74,19 +111,21 @@ public class MiniMax {
 		int bestCol = 0;
 		for (int row = 0; row < this.size; row++) {
 			for (int col = 0; col < this.size; col++) {
-				if (game.validMove(row, col)) {
-					game.makeMove(row, col);
-					double value = maxValue(game);
-					game.undoMove(row, col);
-					if (value < result) {
-						result = value;
-						bestRow = row;
-						bestCol = col;
-					} // end if
+				// if (game.validMove(row, col)) {
+				game.setCurrLocation(new Point(row, col));
+				game.placePiece(game.getGoboard(), 0);
+				double value = this.maxValue(game);
+				game.undoMove(game.getGoboard());
+				if (value < result) {
+					result = value;
+					bestRow = row;
+					bestCol = col;
 				} // end if
+					// } // end if
 			} // end for
 		} // end for
-		game.makeMove(bestRow, bestCol);
+		game.setCurrLocation(new Point(bestRow, bestCol));
+		game.placePiece(game.getGoboard(), 0);
 	} // end makeBestMoveForMin()
 
 	/**
@@ -96,21 +135,23 @@ public class MiniMax {
 		double result = Double.NEGATIVE_INFINITY;
 		int bestRow = 0;
 		int bestCol = 0;
-		for (int row = 0; row < 3; row++) {
-			for (int col = 0; col < 3; col++) {
-				if (game.validMove(row, col)) {
-					game.makeMove(row, col);
-					double value = minValue(game);
-					game.undoMove(row, col);
-					if (value > result) {
-						result = value;
-						bestRow = row;
-						bestCol = col;
-					} // end if
+		for (int row = 0; row < this.size; row++) {
+			for (int col = 0; col < this.size; col++) {
+				// if (game.validMove(row, col)) {
+				game.setCurrLocation(new Point(row, col));
+				game.placePiece(game.getGoboard(), 1);
+				double value = this.minValue(game);
+				game.undoMove(game.getGoboard());
+				if (value > result) {
+					result = value;
+					bestRow = row;
+					bestCol = col;
 				} // end if
+					// } // end if
 			} // end for
 		} // end for
-		game.makeMove(bestRow, bestCol);
+		game.setCurrLocation(new Point(bestRow, bestCol));
+		game.placePiece(game.getGoboard(), 1);
 	} // end makeBestMoveForMin()
 
 } // end MiniMax class

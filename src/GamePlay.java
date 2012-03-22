@@ -33,6 +33,7 @@ public class GamePlay {
 	public String mode;
 	private int size;
 	private boolean addMovealready = false;
+	private MiniMax miniMax;
 
 	// private boolean huiti = false;
 
@@ -46,6 +47,7 @@ public class GamePlay {
 		this.horizontals = new int[this.size];
 		this.verticals = new int[this.size];
 		this.goboard = new Board(this.size);
+		this.miniMax = new MiniMax(s);
 	} // end constructor
 
 	/**
@@ -118,11 +120,10 @@ public class GamePlay {
 					removedChains = this.goboard.addStone(st);
 					this.justPassed = false;
 					if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
-						if (c == 0) {
-							this.moveOpponent(b, 1);
-						} else {
-							this.moveOpponent(b, 0);
-						} // end if } else {
+						if (c == 0)
+							this.miniMax.makeBestMoveForMin(this);
+						else
+							this.miniMax.makeBestMoveForMax(this);
 						this.togglePlayer(c);
 					} // end if
 
@@ -169,14 +170,12 @@ public class GamePlay {
 						removedChains = this.goboard.addStone(st);
 						this.justPassed = false;
 						if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
-							if (c == 0) {
-								this.moveOpponent(b, 1);
-							} else {
-								this.moveOpponent(b, 0);
-							} // end if
-						} else {
+							if (c == 0)
+								this.miniMax.makeBestMoveForMin(this);
+							else
+								this.miniMax.makeBestMoveForMax(this);
+						} else
 							this.togglePlayer(c);
-						}
 
 						Stone newst = (Stone) st.clone();
 						Move newMove = new Move(newst, removedChains);
@@ -195,14 +194,12 @@ public class GamePlay {
 							this.justPassed = false;
 							if (this.mode.equals("HvC")
 									|| this.mode.equals("CvH")) {
-								if (c == 0) {
-									this.moveOpponent(b, 1);
-								} else {
-									this.moveOpponent(b, 0);
-								} // end if
-							} else {
+								if (c == 0)
+									this.miniMax.makeBestMoveForMin(this);
+								else
+									this.miniMax.makeBestMoveForMax(this);
+							} else
 								this.togglePlayer(c);
-							}
 
 							Stone newst = (Stone) st.clone();
 							Move newMove = new Move(newst, removedChains);
@@ -214,8 +211,8 @@ public class GamePlay {
 					}
 
 				}// end if
-				// else it is illgal move
-				
+					// else it is illgal move
+
 				if (HuoziNum > 0 && s.getColor() != 0 && s.getColor() != 1) {
 					Point a = new Point(this.location.x, size - this.location.y
 							- 1);
@@ -223,14 +220,12 @@ public class GamePlay {
 					removedChains = this.goboard.addStone(st);
 					this.justPassed = false;
 					if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
-						if (c == 0) {
-							this.moveOpponent(b, 1);
-						} else {
-							this.moveOpponent(b, 0);
-						} // end if
-					} else {
+						if (c == 0)
+							this.miniMax.makeBestMoveForMin(this);
+						else
+							this.miniMax.makeBestMoveForMax(this);
+					} else
 						this.togglePlayer(c);
-					}// end else
 
 					Stone newst = (Stone) st.clone();
 					Move newMove = new Move(newst, removedChains);
@@ -251,23 +246,21 @@ public class GamePlay {
 					removedChains = this.goboard.addStone(st);
 					this.justPassed = false;
 					if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
-						if (c == 0) {
-							this.moveOpponent(b, 1);
-						} else {
-							this.moveOpponent(b, 0);
-						} // end if
-					} else {
+						if (c == 0)
+							this.miniMax.makeBestMoveForMin(this);
+						else
+							this.miniMax.makeBestMoveForMax(this);
+					} else
 						this.togglePlayer(c);
-					} // end else
 
 					Stone newst = (Stone) st.clone();
 					Move newMove = new Move(newst, removedChains);
 					if (this.addMovealready == false) {
 						this.goboard.moves.push(newMove);
 						this.addMovealready = true;
-					}//end if
-				}//end if
-			}//end else
+					}// end if
+				}// end if
+			}// end else
 		} else {
 
 			if (s.getColor() != 0 && s.getColor() != 1) {
@@ -277,27 +270,25 @@ public class GamePlay {
 				removedChains = this.goboard.addStone(st);
 				this.justPassed = false;
 				if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
-					if (c == 0) {
-						this.moveOpponent(b, 1);
-					} else {
-						this.moveOpponent(b, 0);
-					} // end if
-				} else {
+					if (c == 0)
+						this.miniMax.makeBestMoveForMin(this);
+					else
+						this.miniMax.makeBestMoveForMax(this);
+				} else
 					this.togglePlayer(c);
-				} // end if
 
 				Stone newst = (Stone) st.clone();
 				Move newMove = new Move(newst, removedChains);
 				if (this.addMovealready == false) {
 					this.goboard.moves.push(newMove);
 					this.addMovealready = true;
-				}//end if
-			}//end if
+				}// end if
+			}// end if
 
 		}// end else
 
 		this.addMovealready = false;
-		
+
 	} // end placePiece()
 
 	protected void togglePlayer(int p) {
@@ -489,21 +480,19 @@ public class GamePlay {
 				b.addStone(next);
 			}
 		}// end for
-		
-		//I want to change the player color
+
+		// I want to change the player color
 		this.justPassed = false;
 		if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
-			if (s.getColor() == 0) {
-				this.moveOpponent(b, 0);
-			} else {
-				this.moveOpponent(b, 1);
-			} // end if
-		} else {
+			if (s.getColor() == 0)
+				this.miniMax.makeBestMoveForMin(this);
+			else
+				this.miniMax.makeBestMoveForMax(this);
+		} else
 			this.togglePlayer(s.getColor());
-		} // end else
-		
+
 	}// end undoMove()
-	
+
 	public void forfeit(int p) {
 		System.out.println("Player " + Integer.toString(p) + " forfeits!");
 		this.gameOver();
@@ -586,5 +575,13 @@ public class GamePlay {
 	public void setJustPassed(boolean justPassed) {
 		this.justPassed = justPassed;
 	} // end setJustPassed()
+
+	public MiniMax getMiniMax() {
+		return miniMax;
+	}
+
+	public void setMiniMax(MiniMax miniMax) {
+		this.miniMax = miniMax;
+	}
 
 } // end class
