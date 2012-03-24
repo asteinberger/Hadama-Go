@@ -27,6 +27,7 @@ public class GoPanel extends Panel {
 	private static Image background;
 	private static Image blackStone;
 	private static Image whiteStone;
+	private static Image lastMove;
 	private static Image cursor;
 	private int color = 0;
 	private int[] verticals;
@@ -46,10 +47,10 @@ public class GoPanel extends Panel {
 		GoPanel.blackStone = ImageIO.read(new File("images/goStoneBlack.gif"));
 
 		GoPanel.whiteStone = ImageIO.read(new File("images/goStoneWhite.gif"));
+		GoPanel.lastMove = ImageIO.read(new File("images/lastMove.gif"));
 
-		GoPanel.cursor = ImageIO
-				.read(new File("images/goCursor.gif"));
-		
+		GoPanel.cursor = ImageIO.read(new File("images/goCursor.gif"));
+
 		this.setSize(400, 386);
 		// this.setMinimumSize(new Dimension(400, 386));
 
@@ -87,27 +88,37 @@ public class GoPanel extends Panel {
 				Image img = GoPanel.blackStone;
 
 				if ((st != null) && (st.getChain() != null)
-						&& (st.getColor() == 0) && (!st.getChain().isYan()))
+						&& (st.getColor() == 0) && (!st.getChain().isYan())) {
 					img = GoPanel.blackStone;
+				}
 
 				else if ((st != null) && (st.getChain() != null)
-						&& (st.getColor() == 1) && (!st.getChain().isYan()))
+						&& (st.getColor() == 1) && (!st.getChain().isYan())) {
 					img = GoPanel.whiteStone;
+				}
 
 				if ((st.getColor() != -2) && (st.getColor() != -1)
 						&& (st.getColor() != 3) && (st.getColor() != 4)
 						&& (st.getColor() != 5) && (st.getChain() != null)
-						&& (!st.getChain().isYan()))
+						&& (!st.getChain().isYan())) {
 					g.drawImage(img, this.verticals[x], this.horizontals[y],
 							null);
+				}
 
+				Point p = new Point(x, y);
+
+				if (p.equals(this.gamePlay.getlastMovePosition())) {
+
+					g.drawImage(GoPanel.lastMove, this.verticals[x],
+							this.horizontals[y], null);
+				}
+				
 			} // end for
 
 		} // end for
 
-		
-			g.drawImage(GoPanel.cursor, this.point.x, this.point.y, null);
-	
+		g.drawImage(GoPanel.cursor, this.point.x, this.point.y, null);
+
 	} // end paint()
 
 	public void moveUp() {
@@ -249,6 +260,13 @@ public class GoPanel extends Panel {
 		GoPanel.cursor = blackCursor;
 	} // end setBlackCursor()
 
+	public static Image getlastMove() {
+		return GoPanel.lastMove;
+	}
+
+	public static void setlastMove(Image lastMove) {
+		GoPanel.lastMove = lastMove;
+	}
 
 	public String getMode() {
 		return mode;

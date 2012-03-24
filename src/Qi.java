@@ -6,12 +6,10 @@ public class Qi implements Comparable<Qi> {
 
 	private int x;
 	private int y;
-	private int boardSize;
 
 	public Qi(Point p, int s) {
 		this.x = p.x;
 		this.y = p.y;
-		this.boardSize = s;
 	} // end Qi()
 
 	public int getX() {
@@ -47,14 +45,6 @@ public class Qi implements Comparable<Qi> {
 		boolean isEqual = qComp.equals(this, q);
 		return isEqual;
 	} // end equals()
-
-	public int getBoardSize() {
-		return this.boardSize;
-	} // end getBoardSize()
-
-	public void setBoardSize(int boardSize) {
-		this.boardSize = boardSize;
-	} // end setBoardSize()
 	
 	public Point getPosition(){
 		Point p = new Point(this.x, this.y);

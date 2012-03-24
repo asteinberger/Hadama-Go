@@ -9,8 +9,8 @@ public class QiComparator implements Comparator<Qi> {
 		Point p1 = new Point(o1.getX(), o1.getY());
 		Point p2 = new Point(o2.getX(), o2.getY());
 
-		int val1 = o1.getBoardSize() * p1.x + p1.y;
-		int val2 = o2.getBoardSize() * p2.x + p2.y;
+		int val1 = 20 * p1.x + p1.y;
+		int val2 = 20 * p2.x + p2.y;
 		int compare = val1 - val2;
 
 		if (compare < 0)
@@ -27,8 +27,8 @@ public class QiComparator implements Comparator<Qi> {
 		Point p1 = new Point(o1.getX(), o1.getY());
 		Point p2 = new Point(o2.getX(), o2.getY());
 
-		int val1 = o1.getBoardSize() * p1.x + p1.y;
-		int val2 = o2.getBoardSize() * p2.x + p2.y;
+		int val1 = 20 * p1.x + p1.y;
+		int val2 = 20 * p2.x + p2.y;
 		int compare = val1 - val2;
 
 		if (compare == 0)
