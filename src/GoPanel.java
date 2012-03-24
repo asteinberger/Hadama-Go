@@ -27,8 +27,7 @@ public class GoPanel extends Panel {
 	private static Image background;
 	private static Image blackStone;
 	private static Image whiteStone;
-	private static Image blackCursor;
-	private static Image whiteCursor;
+	private static Image cursor;
 	private int color = 0;
 	private int[] verticals;
 	private int[] horizontals;
@@ -36,24 +35,21 @@ public class GoPanel extends Panel {
 	private String mode = "HvH";
 	private int size;
 
-	private static Point cellDim = new Point(40, 39);
-	private static Point borderTopLeft = new Point(17, 17);
-	private static Point borderBottomRight = new Point(340, 329);
+	private static Point cellDim = new Point(35, 35);
+	private static Point borderTopLeft = new Point(200, 184);
+	private static Point borderBottomRight = new Point(493, 463);
 
 	public GoPanel(Board b, GamePlay gp) throws IOException {
 
-		GoPanel.background = ImageIO.read(new File("images/goBoard.png"));
+		GoPanel.background = ImageIO.read(new File("images/board.gif"));
 
-		GoPanel.blackStone = ImageIO.read(new File("images/goStoneBlack.png"));
+		GoPanel.blackStone = ImageIO.read(new File("images/goStoneBlack.gif"));
 
-		GoPanel.whiteStone = ImageIO.read(new File("images/goStoneWhite.png"));
+		GoPanel.whiteStone = ImageIO.read(new File("images/goStoneWhite.gif"));
 
-		GoPanel.blackCursor = ImageIO
-				.read(new File("images/goCursorBlack.png"));
-
-		GoPanel.whiteCursor = ImageIO
-				.read(new File("images/goCursorWhite.png"));
-
+		GoPanel.cursor = ImageIO
+				.read(new File("images/goCursor.gif"));
+		
 		this.setSize(400, 386);
 		// this.setMinimumSize(new Dimension(400, 386));
 
@@ -109,11 +105,9 @@ public class GoPanel extends Panel {
 
 		} // end for
 
-		if (this.color == 0)
-			g.drawImage(GoPanel.blackCursor, this.point.x, this.point.y, null);
-		else
-			g.drawImage(GoPanel.whiteCursor, this.point.x, this.point.y, null);
-
+		
+			g.drawImage(GoPanel.cursor, this.point.x, this.point.y, null);
+	
 	} // end paint()
 
 	public void moveUp() {
@@ -248,20 +242,13 @@ public class GoPanel extends Panel {
 	} // end setGamePlay()
 
 	public static Image getBlackCursor() {
-		return GoPanel.blackCursor;
+		return GoPanel.cursor;
 	} // end getBlackCursor()
 
 	public static void setBlackCursor(Image blackCursor) {
-		GoPanel.blackCursor = blackCursor;
+		GoPanel.cursor = blackCursor;
 	} // end setBlackCursor()
 
-	public static Image getWhiteCursor() {
-		return GoPanel.whiteCursor;
-	} // end getWhiteCursor()
-
-	public static void setWhiteCursor(Image whiteCursor) {
-		GoPanel.whiteCursor = whiteCursor;
-	} // end setWhiteCursor()
 
 	public String getMode() {
 		return mode;

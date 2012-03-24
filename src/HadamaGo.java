@@ -23,7 +23,10 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.HashMap;
+
+import javax.media.NoPlayerException;
 
 public class HadamaGo extends Thread {
 
@@ -40,12 +43,12 @@ public class HadamaGo extends Thread {
 	/**
 	 * The window frame dimensions are hard coded to 525 by 400 pixels.
 	 */
-	private static int frameHeight = 525;
+	private static int frameHeight = 694;
 
 	/**
 	 * The window frame dimensions are hard coded to 450 by 400 pixels.
 	 */
-	private static int frameLength = 400;
+	private static int frameLength = 722;
 
 	/**
 	 * The game listener variable controls the action, key and mouse events
@@ -78,8 +81,9 @@ public class HadamaGo extends Thread {
 	private static GoPanel goPanel;
 	private static Panel panel;
 	private static HashMap<String, Button> buttons = new HashMap<String, Button>();
-	private static TextField scoreBlack = new TextField(20);
-	private static TextField scoreWhite = new TextField(20);
+	private static TextField scoreBlack = new TextField(10);
+	private static TextField scoreWhite = new TextField(10);
+	private static MediaPlayer mp;
 
 	// d = dahi
 	// t = testFrame
@@ -111,22 +115,23 @@ public class HadamaGo extends Thread {
 
 	public void run() {
 
+		try {
+			HadamaGo.mp = new MediaPlayer("audio/Ratatat-Wildcat.wav");
+		} catch (NoPlayerException e1) {
+			e1.printStackTrace();
+		} catch (MalformedURLException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		} // end try
+
 		this.testFrame.setLayout(new BorderLayout());
 
-		this.addButton("up");
-		this.addButton("right");
-		this.addButton("down");
-		this.addButton("left");
-		this.addButton("place stone");
-		this.addButton("pass turn");
 		this.addButton("forfeit");
-		this.addButton("print board");
-		this.addButton("print chains");
-		this.addButton("print weis");
-		this.addButton("print moves");
-		this.addButton("print scores");
+		this.addButton("pass turn");
 		this.addButton("undo move");
 		this.addButton("new game");
+		this.addButton("toggle sound");
 
 		double[] scores = this.goboard.getScores();
 		HadamaGo.scoreBlack.addActionListener(HadamaGo.gListen);
@@ -135,24 +140,16 @@ public class HadamaGo extends Thread {
 		HadamaGo.scoreWhite.setText("White = " + Double.toString(scores[1]));
 
 		HadamaGo.panel = new Panel();
-		HadamaGo.panel.setLayout(new GridLayout(4, 4, 2, 2));
-		HadamaGo.panel.setSize(200, 150);
-		HadamaGo.panel.add(HadamaGo.buttons.get("up"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("right"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("down"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("left"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("place stone"));
+		HadamaGo.panel.setLayout(new FlowLayout());
+		HadamaGo.panel.setSize(722, 20);
+
 		HadamaGo.panel.add(HadamaGo.buttons.get("pass turn"));
 		HadamaGo.panel.add(HadamaGo.buttons.get("forfeit"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("print board"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("print chains"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("print weis"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("print moves"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("print scores"));
 		HadamaGo.panel.add(HadamaGo.buttons.get("undo move"));
 		HadamaGo.panel.add(HadamaGo.buttons.get("new game"));
 		HadamaGo.panel.add(HadamaGo.scoreBlack);
 		HadamaGo.panel.add(HadamaGo.scoreWhite);
+		HadamaGo.panel.add(HadamaGo.buttons.get("toggle sound"));
 
 		this.testFrame.add(HadamaGo.goPanel, BorderLayout.CENTER);
 		this.testFrame.add(HadamaGo.panel, BorderLayout.SOUTH);
@@ -172,19 +169,6 @@ public class HadamaGo extends Thread {
 		HadamaGo.panel.addMouseListener(HadamaGo.gListen);
 		HadamaGo.panel.addMouseMotionListener(HadamaGo.gListen);
 
-		// code to set up a menu and add it to our frame
-		// and register an event listener to it
-		String[] s1 = { "New Game", "Quit" };
-		Menu m1 = this.addMenu("File", s1);
-
-		String[] s2 = { "Undo", "Forfeit" };
-		Menu m2 = this.addMenu("Edit", s2);
-
-		MenuBar menuBar = new MenuBar();
-		menuBar.add(m1);
-		menuBar.add(m2);
-		this.testFrame.setMenuBar(menuBar);
-
 		this.testFrame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				System.exit(0);
@@ -196,19 +180,6 @@ public class HadamaGo extends Thread {
 		this.testFrame.setVisible(true);
 
 	} // end main
-
-	private Menu addMenu(String n, String[] mi) {
-		Menu m = new Menu(n);
-		for (int i = 0; i < mi.length; i++)
-			m.add(this.addMenuItem(mi[i]));
-		return m;
-	} // end addMenu()
-
-	private MenuItem addMenuItem(String s) {
-		MenuItem mi = new MenuItem(s);
-		mi.addActionListener(HadamaGo.gListen);
-		return mi;
-	} // end addMenuItem()
 
 	/*
 	 * getters and setters
@@ -331,6 +302,14 @@ public class HadamaGo extends Thread {
 
 	public void setScoreWhite(TextField scoreWhite) {
 		HadamaGo.scoreWhite = scoreWhite;
+	}
+
+	public static MediaPlayer getMp() {
+		return mp;
+	}
+
+	public static void setMp(MediaPlayer mp) {
+		HadamaGo.mp = mp;
 	}
 
 } // end class

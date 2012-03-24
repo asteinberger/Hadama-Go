@@ -11,9 +11,9 @@ import java.awt.event.*;
 public class GameListener implements KeyListener, ActionListener,
 		MouseListener, MouseMotionListener {
 
-	private static Point cellDim = new Point(40, 39);
-	private static Point borderTopLeft = new Point(17, 17);
-	private static Point borderBottomRight = new Point(340, 329);
+	private static Point cellDim = new Point(35, 35);
+	private static Point borderTopLeft = new Point(200, 184);
+	private static Point borderBottomRight = new Point(493, 463);
 	private HadamaGo ait;
 	private Board goBoard;
 	private int size = 9;
@@ -51,42 +51,16 @@ public class GameListener implements KeyListener, ActionListener,
 	// Menu Option Events
 	public void actionPerformed(ActionEvent ae) {
 		String s = ae.getActionCommand();
-		if (s.equals("up"))
-			this.movePiece('w');
-		else if (s.equals("right"))
-			this.movePiece('d');
-		else if (s.equals("down"))
-			this.movePiece('s');
-		else if (s.equals("left"))
-			this.movePiece('a');
-		else if (s.equals("place stone"))
-			this.movePiece(' ');
-		else if (s.equals("pass turn"))
+		if (s.equals("pass turn"))
 			this.pass();
 		else if (s.equals("forfeit"))
 			this.forfeit();
-		else if (s.equals("print board"))
-			this.goBoard.printBoard();
-		else if (s.equals("print chains"))
-			this.goBoard.printChains();
-		else if (s.equals("print weis"))
-			this.goBoard.printWeis();
-		else if (s.equals("print scores"))
-			this.goBoard.printScores();
-		else if (s.equals("print moves"))
-			System.out.println(this.goBoard.getMoves().toString());
 		else if (s.equals("undo move"))
 			this.undoMove();
 		else if (s.equals("new game"))
 			this.newGame();
-		else if (s.equals("New Game"))
-			this.newGame();
-		else if (s.equals("Undo"))
-			this.undoMove();
-		else if (s.equals("Forfeit"))
-			this.gamePlay.forfeit(this.color);
-		else if (s.equals("Quit"))
-			System.exit(0);
+		else if (s.equals("toggle sound"))
+			HadamaGo.getMp().pause();
 	} // end actionPerformed()
 
 	@Override
@@ -167,6 +141,10 @@ public class GameListener implements KeyListener, ActionListener,
 		case 'Q':
 		case 'q':
 			System.exit(0);
+			break;
+		case 'Z':
+		case 'z':
+			HadamaGo.getMp().pause();
 			break;
 		} // end switch
 	} // end movePiece()
