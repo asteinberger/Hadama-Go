@@ -27,10 +27,11 @@ public class GamePlay implements Cloneable {
 	private MiniMax miniMax;
 	private Point LastMovePostion;
 	private boolean isLearning = false;
+	private GameListener gListen;
 
 	// private boolean huiti = false;
 
-	public GamePlay(String m, int s) {
+	public GamePlay(GameListener gl, String m, int s) {
 		this.color = 0;
 		this.mode = m;
 		this.size = s;
@@ -40,7 +41,8 @@ public class GamePlay implements Cloneable {
 		this.horizontals = new int[this.size];
 		this.verticals = new int[this.size];
 		this.goboard = new Board(this.size);
-		this.miniMax = new MiniMax(s);
+		this.gListen = gl;
+		this.miniMax = new MiniMax(gl, s);
 	} // end constructor
 
 	/**
@@ -67,8 +69,8 @@ public class GamePlay implements Cloneable {
 	 * @param g
 	 *            game
 	 */
-	public GamePlay(String m, int s, Point l, Point p, Point i, int[] h,
-			int[] v, Board g, int c) {
+	public GamePlay(GameListener gl, String m, int s, Point l, Point p,
+			Point i, int[] h, int[] v, Board g, int c) {
 		this.mode = m;
 		this.size = s;
 		this.location = l;
@@ -78,10 +80,12 @@ public class GamePlay implements Cloneable {
 		this.verticals = v;
 		this.goboard = g;
 		this.color = c;
+		this.gListen = gl;
 	} // end constructor
 
 	// c = player stone color
-	public void placePiece(Board b, int c) throws CloneNotSupportedException, InterruptedException {
+	public void placePiece(Board b, int c) throws CloneNotSupportedException,
+			InterruptedException {
 
 		Point p = new Point(this.location.x, size - this.location.y - 1);
 		this.goboard = b;
@@ -100,11 +104,11 @@ public class GamePlay implements Cloneable {
 					if (c == 0)
 						// this.moveOpponent(b, 1);
 						this.miniMax
-								.makeBestMoveForMin((GamePlay) this.clone());
+								.makeBestMoveForMax((GamePlay) this.clone());
 					else
 						// this.moveOpponent(b, 0);
 						this.miniMax
-								.makeBestMoveForMax((GamePlay) this.clone());
+								.makeBestMoveForMin((GamePlay) this.clone());
 				} else if (!isLearning)
 					this.togglePlayer(c);
 
@@ -131,11 +135,11 @@ public class GamePlay implements Cloneable {
 					if (c == 0)
 						// this.moveOpponent(b, 1);
 						this.miniMax
-								.makeBestMoveForMin((GamePlay) this.clone());
+								.makeBestMoveForMax((GamePlay) this.clone());
 					else
 						// this.moveOpponent(b, 0);
 						this.miniMax
-								.makeBestMoveForMax((GamePlay) this.clone());
+								.makeBestMoveForMin((GamePlay) this.clone());
 				} else if (!isLearning)
 					this.togglePlayer(c);
 
@@ -174,12 +178,9 @@ public class GamePlay implements Cloneable {
 
 		if (!this.gameOver) {
 
-			Point p = new Point(0, 0);
-
 			Random rand = new Random(System.currentTimeMillis());
 			int oppX = rand.nextInt(9);
 			int oppY = rand.nextInt(9);
-			p = new Point(oppX, oppY);
 
 			Point a = new Point(oppX, oppY);
 			Stone s = new Stone(c, a); // 0 is black 1 is white
@@ -191,7 +192,8 @@ public class GamePlay implements Cloneable {
 
 	} // end moveOpponent()
 
-	public void undoMove(Board b) throws CloneNotSupportedException, InterruptedException {
+	public void undoMove(Board b) throws CloneNotSupportedException,
+			InterruptedException {
 		if (b.getMoves().size() == 0) {
 			System.out.println("No move has been made!");
 		} else {
@@ -320,9 +322,9 @@ public class GamePlay implements Cloneable {
 
 				if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
 					if (s.getColor() == 0)
-						this.miniMax.makeBestMoveForMin(this);
+						this.miniMax.makeBestMoveForMax((GamePlay) this.clone());
 					else
-						this.miniMax.makeBestMoveForMax(this);
+						this.miniMax.makeBestMoveForMin((GamePlay) this.clone());
 				} else
 					this.togglePlayer(s.getColor());
 
@@ -335,9 +337,9 @@ public class GamePlay implements Cloneable {
 
 				if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
 					if (s.getColor() == 0)
-						this.miniMax.makeBestMoveForMin(this);
+						this.miniMax.makeBestMoveForMax((GamePlay) this.clone());
 					else
-						this.miniMax.makeBestMoveForMax(this);
+						this.miniMax.makeBestMoveForMin((GamePlay) this.clone());
 				} else
 					this.togglePlayer(s.getColor());
 
@@ -348,10 +350,12 @@ public class GamePlay implements Cloneable {
 
 		}// end else
 
-		Move testm = b.getMoves().peek();
-		boolean nextip = testm.getisPass();
-		if (nextip) {
-			this.justPassed = true;
+		if (!b.getMoves().isEmpty()) {
+			Move testm = b.getMoves().peek();
+			boolean nextip = testm.getisPass();
+			if (nextip) {
+				this.justPassed = true;
+			}
 		}
 
 		this.goboard.illegalMoveDetector();
@@ -467,6 +471,14 @@ public class GamePlay implements Cloneable {
 
 	public void setLearning(boolean isLearning) {
 		this.isLearning = isLearning;
+	}
+
+	public GameListener getgListen() {
+		return gListen;
+	}
+
+	public void setgListen(GameListener gListen) {
+		this.gListen = gListen;
 	}
 
 } // end class

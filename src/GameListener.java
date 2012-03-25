@@ -91,7 +91,8 @@ public class GameListener implements KeyListener, ActionListener,
 		}
 	} // end keyTyped()
 
-	private void movePiece(char ch) throws CloneNotSupportedException, InterruptedException {
+	private void movePiece(char ch) throws CloneNotSupportedException,
+			InterruptedException {
 		if (!this.gameOver) {
 			switch (ch) {
 			case 'A':
@@ -213,7 +214,8 @@ public class GameListener implements KeyListener, ActionListener,
 		this.updateScores();
 	} // end newGame()
 
-	private void undoMove() throws CloneNotSupportedException, InterruptedException {
+	public void undoMove() throws CloneNotSupportedException,
+			InterruptedException {
 		this.gamePlay.undoMove(this.goBoard);
 		this.togglePlayer();
 		HadamaGo.getGoPanel().setColor(this.color);
@@ -221,7 +223,8 @@ public class GameListener implements KeyListener, ActionListener,
 		this.updateScores();
 	} // end undoMove()
 
-	private void placePiece() throws CloneNotSupportedException, InterruptedException {
+	public void placePiece() throws CloneNotSupportedException,
+			InterruptedException {
 		this.gamePlay.placePiece(this.goBoard, this.color);
 		this.gameOver = this.gamePlay.isGameOver();
 		this.color = this.gamePlay.getPlayer();
@@ -248,19 +251,16 @@ public class GameListener implements KeyListener, ActionListener,
 			this.gamePlay.gameOver();
 		} else {
 
-	
 			Stone ns = new Stone();
 			ns.setColor(this.color);
 			ArrayList<Chain> removedChains = new ArrayList<Chain>();
-			Move newMove = new Move(ns, removedChains,null, true);
+			Move newMove = new Move(ns, removedChains, null, true);
 			this.gamePlay.getGoboard().getMoves().push(newMove);
 			this.togglePlayer();
 			this.gamePlay.setJustPassed(true);
-		
-		
 
 		} // end if
-	
+
 		this.gamePlay.setPlayer(this.color);
 		HadamaGo.getGoPanel().setColor(this.color);
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());

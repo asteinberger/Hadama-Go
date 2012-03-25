@@ -65,9 +65,20 @@ public class Board {
 		if (board[x][y] != null) {
 
 			// *****for chain color = 3 **************
-			Stone a = this.board[x][y].getChain().first(); // maybe become a bug
-															// for the future
-			Point p = a.getLocation();
+			Point p = new Point(0, 0);
+			System.out.println(":::::::::::::::");
+			System.out.println(this.board[x][y]);
+			System.out.println(this.board[x][y].getChain());
+			System.out.println(this.board[x][y].getChain().first());
+			if ((this.board[x][y] != null)
+					&& (this.board[x][y].getChain() != null)
+					&& !this.board[x][y].getChain().isEmpty()) {
+				Stone a = this.board[x][y].getChain().first(); // maybe become a
+																// bug
+																// for the
+																// future
+				p = a.getLocation();
+			}
 
 			if ((this.board[p.x][p.y].getColor() == 3)
 					|| (this.board[p.x][p.y].getColor() == 4)) {

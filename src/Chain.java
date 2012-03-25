@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeSet;
 
@@ -313,12 +314,15 @@ public class Chain extends TreeSet<Stone> {
 				this.goboard.realChainIndex(this.getChainIndex()));
 
 		// Add back all stones back to board
+		ArrayList<Stone> toAdd = new ArrayList<Stone>();
 		c.removeStone(currentS);
 		Iterator<Stone> it2 = c.iterator();
 		while (it2.hasNext()) {
 			Stone s = it2.next();
-			this.goboard.addStone(s);
-		}
+			toAdd.add(s);
+		} // end while
+		for (int i = 0; i < toAdd.size(); i++)
+			this.goboard.addStone(toAdd.get(i));
 
 	} // end checkQis()
 
@@ -344,6 +348,7 @@ public class Chain extends TreeSet<Stone> {
 			this.goboard.getChains().remove(index);
 		// Add back all stones back to board
 
+		ArrayList<Stone> toAdd = new ArrayList<Stone>();
 		c.removeStone(currentS);
 		Iterator<Stone> it2 = c.iterator();
 		while (it2.hasNext()) {
@@ -353,9 +358,10 @@ public class Chain extends TreeSet<Stone> {
 			} else {
 				s.setColor(3);
 			}
-
-			this.goboard.addStone(s);
+			toAdd.add(s);
 		}
+		for (int i = 0; i < toAdd.size(); i++)
+			this.goboard.addStone(toAdd.get(i));
 
 	} // end checkQis()
 

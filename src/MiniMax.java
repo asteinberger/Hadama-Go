@@ -1,6 +1,5 @@
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.Random;
 
 /**
  * @author Adam Steinberger
@@ -11,13 +10,15 @@ import java.util.Random;
 
 public class MiniMax {
 
-	private static final int waitTime = 100;
+	private static final int waitTime = 1;
 	private ArrayList<Point> legalMovesBlack = new ArrayList<Point>();
 	private ArrayList<Point> legalMovesWhite = new ArrayList<Point>();
 	private int size;
+	private GameListener gListen;
 
-	public MiniMax(int s) {
+	public MiniMax(GameListener gl, int s) {
 		this.size = s;
+		this.gListen = gl;
 	} // end constructor
 
 	private void findLegalMoves(GamePlay game) {
@@ -69,8 +70,6 @@ public class MiniMax {
 			result = scores[0];
 		} else {
 
-			game.setLearning(true);
-
 			this.findLegalMoves(game);
 
 			for (int i = 0; i < this.legalMovesBlack.size(); i++) {
@@ -82,6 +81,25 @@ public class MiniMax {
 						+ Integer.toString(p.y));
 
 				Stone s = game.getGoboard().getStone(p);
+
+				// try {
+				// Robot robot = new Robot();
+				//
+				// // Simulate a key press
+				// robot.keyPress(KeyEvent.VK_SPACE);
+				// robot.keyRelease(KeyEvent.VK_A);
+				// } catch (AWTException e) {
+				// }
+
+				game.setCurrLocation(p);
+				int[] horiz = game.getHorizontals();
+				int[] vert = game.getVerticals();
+				Point intersect = new Point(horiz[p.x], vert[p.y]);
+				game.setIntersection(intersect);
+				game.setPlayer(0);
+				HadamaGo.setGamePlay(game);
+				HadamaGo.getgListen().placePiece();
+
 				game.getGoboard().addStone(new Stone(0, p));
 				game.getGoboard().printBoard();
 
@@ -104,13 +122,14 @@ public class MiniMax {
 				else
 					game.getGoboard().addStone(new Stone(-1, p));
 
+				HadamaGo.setGamePlay(game);
+				HadamaGo.getgListen().undoMove();
+
 				if (result >= beta)
 					return result;
 				alpha = Math.max(alpha, result);
 
 			} // end for
-
-			game.setLearning(false);
 
 		} // end if
 		return result;
@@ -132,8 +151,6 @@ public class MiniMax {
 			result = scores[1];
 		} else {
 
-			game.setLearning(true);
-
 			this.findLegalMoves(game);
 
 			for (int i = 0; i < this.legalMovesWhite.size(); i++) {
@@ -144,11 +161,17 @@ public class MiniMax {
 				System.out.println("MinValue @ " + Integer.toString(p.x) + ", "
 						+ Integer.toString(p.y));
 
-				// game.setCurrLocation(p);
-				// game.placePiece(game.getGoboard(), 1);
-
 				Stone s = game.getGoboard().getStone(p);
 				game.getGoboard().addStone(new Stone(1, p));
+
+				game.setCurrLocation(p);
+				int[] horiz = game.getHorizontals();
+				int[] vert = game.getVerticals();
+				Point intersect = new Point(horiz[p.x], vert[p.y]);
+				game.setIntersection(intersect);
+				game.setPlayer(1);
+				HadamaGo.setGamePlay(game);
+				HadamaGo.getgListen().placePiece();
 
 				HadamaGo.getGoPanel()
 						.paint(HadamaGo.getGoPanel().getGraphics());
@@ -170,13 +193,14 @@ public class MiniMax {
 				else
 					game.getGoboard().addStone(new Stone(-1, p));
 
+				HadamaGo.setGamePlay(game);
+				HadamaGo.getgListen().undoMove();
+
 				if (result <= alpha)
 					return result;
 				beta = Math.min(beta, result);
 
 			} // end for
-
-			game.setLearning(false);
 
 		} // end if
 		return result;
@@ -192,6 +216,8 @@ public class MiniMax {
 	public void makeBestMoveForMin(GamePlay game)
 			throws CloneNotSupportedException, InterruptedException {
 
+		Thread.sleep(waitTime);
+
 		double result = Double.POSITIVE_INFINITY;
 		game.setLearning(true);
 		this.findLegalMoves(game);
@@ -201,10 +227,24 @@ public class MiniMax {
 			Point p = this.legalMovesWhite.get(i);
 			Stone s = game.getGoboard().getStone(p);
 			game.getGoboard().addStone(new Stone(0, p));
+
+			game.setCurrLocation(p);
+			int[] horiz = game.getHorizontals();
+			int[] vert = game.getVerticals();
+			Point intersect = new Point(horiz[p.x], vert[p.y]);
+			game.setIntersection(intersect);
+			game.setPlayer(0);
+			HadamaGo.setGamePlay(game);
+			HadamaGo.getgListen().placePiece();
+
 			HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
 			Thread.sleep(waitTime);
-			double value = this.maxValue(game, Double.NEGATIVE_INFINITY,
+			double value = this.minValue(game, Double.NEGATIVE_INFINITY,
 					Double.POSITIVE_INFINITY);
+
+			HadamaGo.setGamePlay(game);
+			HadamaGo.getgListen().undoMove();
+
 			if (s != null) {
 				game.setCurrLocation(p);
 				game.setPlayer(1);
@@ -213,6 +253,7 @@ public class MiniMax {
 			// game.getGoboard().addStone(s);
 			else
 				game.getGoboard().addStone(new Stone(-1, p));
+
 			if (value < result) {
 				result = value;
 				bestMove = p;
@@ -221,7 +262,16 @@ public class MiniMax {
 
 		game.setLearning(false);
 		game.setCurrLocation(bestMove);
+		int[] horiz = game.getHorizontals();
+		int[] vert = game.getVerticals();
+		Point intersect = new Point(horiz[bestMove.x], vert[bestMove.y]);
+		game.setIntersection(intersect);
+		game.setPlayer(0);
+		HadamaGo.setGamePlay(game);
+		HadamaGo.getgListen().placePiece();
+
 		game.placePiece(game.getGoboard(), 0);
+		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
 
 	} // end makeBestMoveForMin()
 
@@ -234,35 +284,69 @@ public class MiniMax {
 	public void makeBestMoveForMax(GamePlay game)
 			throws CloneNotSupportedException, InterruptedException {
 
+		Thread.sleep(waitTime);
+
 		double result = Double.NEGATIVE_INFINITY;
 		game.setLearning(true);
 		this.findLegalMoves(game);
 		Point bestMove = new Point(0, 0);
 
-		for (int i = 0; i < this.legalMovesWhite.size(); i++) {
-			Point p = this.legalMovesWhite.get(i);
+		for (int i = 0; i < this.legalMovesBlack.size(); i++) {
+			Point p = this.legalMovesBlack.get(i);
 			Stone s = game.getGoboard().getStone(p);
+
+			game.setCurrLocation(p);
+			int[] horiz = game.getHorizontals();
+			int[] vert = game.getVerticals();
+			Point intersect = new Point(horiz[p.x], vert[p.y]);
+			game.setIntersection(intersect);
+			game.setPlayer(0);
+			HadamaGo.setGamePlay(game);
+			HadamaGo.getgListen().placePiece();
+
 			game.getGoboard().addStone(new Stone(1, p));
 			HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
 			Thread.sleep(waitTime);
-			double value = this.minValue(game, Double.POSITIVE_INFINITY,
+			double value = this.maxValue(game, Double.POSITIVE_INFINITY,
 					Double.NEGATIVE_INFINITY);
+
+			HadamaGo.setGamePlay(game);
+			HadamaGo.getgListen().undoMove();
+
 			if (s != null)
 				game.getGoboard().addStone(s);
 			else
 				game.getGoboard().addStone(new Stone(-1, p));
+
 			if (value > result) {
 				result = value;
 				bestMove = p;
 			} // end if
 		} // end for
 
-		System.out.println(bestMove);
+		// System.out.println(bestMove);
 
 		game.setLearning(false);
 		game.setCurrLocation(bestMove);
+		int[] horiz = game.getHorizontals();
+		int[] vert = game.getVerticals();
+		Point p = new Point(horiz[bestMove.x], vert[bestMove.y]);
+		game.setIntersection(p);
+		game.setPlayer(0);
+		HadamaGo.setGamePlay(game);
+		HadamaGo.getgListen().placePiece();
+
 		game.placePiece(game.getGoboard(), 1);
+		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
 
 	} // end makeBestMoveForMin()
+
+	public GameListener getgListen() {
+		return gListen;
+	}
+
+	public void setgListen(GameListener gListen) {
+		this.gListen = gListen;
+	}
 
 } // end MiniMax class

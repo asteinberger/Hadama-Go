@@ -75,7 +75,7 @@ public class HadamaGo extends Thread {
 	 */
 	private int size;
 
-	private static GoPanel goPanel;    
+	private static GoPanel goPanel;
 	private static Panel panel;
 	private static HashMap<String, Button> buttons = new HashMap<String, Button>();
 	private static TextField scoreBlack = new TextField(12);
@@ -91,7 +91,8 @@ public class HadamaGo extends Thread {
 		this.size = s;
 		HadamaGo.length = s;
 		this.goboard = new Board(this.size);
-		HadamaGo.gamePlay = new GamePlay(HadamaGo.gameMode, HadamaGo.length);
+		HadamaGo.gamePlay = new GamePlay(HadamaGo.gListen, HadamaGo.gameMode,
+				HadamaGo.length);
 		HadamaGo.goPanel = new GoPanel(this.goboard, HadamaGo.gamePlay);
 		HadamaGo.gListen = new GameListener(this, this.goboard, this.size,
 				HadamaGo.gamePlay);
@@ -113,7 +114,6 @@ public class HadamaGo extends Thread {
 
 		this.testFrame.setLayout(new BorderLayout());
 
-	
 		this.addButton("forfeit");
 		this.addButton("pass turn");
 		this.addButton("undo move");
@@ -128,7 +128,7 @@ public class HadamaGo extends Thread {
 		HadamaGo.panel = new Panel();
 		HadamaGo.panel.setLayout(new FlowLayout());
 		HadamaGo.panel.setSize(722, 20);
-		
+
 		HadamaGo.panel.add(HadamaGo.buttons.get("pass turn"));
 		HadamaGo.panel.add(HadamaGo.buttons.get("forfeit"));
 		HadamaGo.panel.add(HadamaGo.buttons.get("undo move"));
@@ -154,8 +154,6 @@ public class HadamaGo extends Thread {
 		HadamaGo.panel.addMouseListener(HadamaGo.gListen);
 		HadamaGo.panel.addMouseMotionListener(HadamaGo.gListen);
 
-	
-
 		this.testFrame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				System.exit(0);
@@ -168,7 +166,6 @@ public class HadamaGo extends Thread {
 
 	} // end main
 
-	
 	/*
 	 * getters and setters
 	 */
