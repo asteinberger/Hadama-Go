@@ -208,7 +208,7 @@ public class GamePlay implements Cloneable {
 				// update this stone's chain, if the size is 1 which we want to
 				// move
 				// from the chains
-				if (newc.size() == 1) {
+				if ((newc != null) && (newc.size() == 1)) {
 					b.getChains().remove(
 							b.realChainIndex(news.getChain().getChainIndex()));
 				}
@@ -297,13 +297,16 @@ public class GamePlay implements Cloneable {
 				Wei newW = news.getWei();
 				if (newW.size() == 1) {
 
-					// problem is here
-					b.getWeis().remove(
-							b.realWeiIndex(news.getWei().getWeiIndex()));
+					// problem is here // or is it lol
+					int index = b.realWeiIndex(news.getWei().getWeiIndex());
+					if (index > -1)
+						b.getWeis().remove(index);
 				} else {
-					b.getWeis()
-							.get(b.realWeiIndex(news.getWei().getWeiIndex()))
-							.remove(s);
+					int index = b.realWeiIndex(news.getWei().getWeiIndex());
+					if (index > -1)
+						b.getWeis()
+								.get(b.realWeiIndex(news.getWei().getWeiIndex()))
+								.remove(s);
 
 				}
 
@@ -322,9 +325,11 @@ public class GamePlay implements Cloneable {
 
 				if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
 					if (s.getColor() == 0)
-						this.miniMax.makeBestMoveForMax((GamePlay) this.clone());
+						this.miniMax
+								.makeBestMoveForMax((GamePlay) this.clone());
 					else
-						this.miniMax.makeBestMoveForMin((GamePlay) this.clone());
+						this.miniMax
+								.makeBestMoveForMin((GamePlay) this.clone());
 				} else
 					this.togglePlayer(s.getColor());
 
@@ -337,9 +342,11 @@ public class GamePlay implements Cloneable {
 
 				if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
 					if (s.getColor() == 0)
-						this.miniMax.makeBestMoveForMax((GamePlay) this.clone());
+						this.miniMax
+								.makeBestMoveForMax((GamePlay) this.clone());
 					else
-						this.miniMax.makeBestMoveForMin((GamePlay) this.clone());
+						this.miniMax
+								.makeBestMoveForMin((GamePlay) this.clone());
 				} else
 					this.togglePlayer(s.getColor());
 

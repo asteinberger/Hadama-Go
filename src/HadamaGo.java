@@ -1,20 +1,6 @@
 /**
- * Go.java - This class has the main method and sets up the window and
- * does some initialization.  The bulk of the work is done in
- * DrawAndHandleInput.java
- * 
- * =========================================================
- * 
- * This program is a modified version of a Java program used
- * in Michael Eckmann's Computer Graphics course at Skidmore
- * College, which is a modified version of a C program 
- * used in G. Drew Kessler's Computer Graphics course at 
- * Lehigh University.  Michael Eckmann based some of his
- * code on the code found in JOGL: A Beginner's Guide and
- * Tutorial By Kevin Conroy
- * http://www.cs.umd.edu/~meesh/kmconroy/JOGLTutorial/
- * 
- * =========================================================
+ * HadamaGo.java - This is the main game thread for playing Hadama Go! 
+ * It setups the window and starts a new game.
  * 
  * @author Adam Steinberger <steinz08@gmail.com>, Haoran Ma <mahaoran1020@gmail.com>
  */
@@ -38,12 +24,12 @@ public class HadamaGo extends Thread {
 	private static String gameMode = "HvC";
 
 	/**
-	 * The window frame dimensions are hard coded to 525 by 400 pixels.
+	 * The window frame dimensions are hard coded to 694 by 722 pixels.
 	 */
 	private static int frameHeight = 694;
 
 	/**
-	 * The window frame dimensions are hard coded to 450 by 400 pixels.
+	 * The window frame dimensions are hard coded to 694 by 722 pixels.
 	 */
 	private static int frameLength = 722;
 
@@ -96,7 +82,7 @@ public class HadamaGo extends Thread {
 		HadamaGo.goPanel = new GoPanel(this.goboard, HadamaGo.gamePlay);
 		HadamaGo.gListen = new GameListener(this, this.goboard, this.size,
 				HadamaGo.gamePlay);
-		this.testFrame = new Frame("Hadama Go v8.06");
+		this.testFrame = new Frame("Hadama Go v10.10");
 	} // end constructor
 
 	public static void main(String[] args) throws IOException {
