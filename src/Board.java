@@ -48,7 +48,7 @@ public class Board {
 	/**
 	 * TODO: Needs comment
 	 */
-	private Point LastTiziPosition;
+	private Point lastTiziPosition;
 
 	/**
 	 * TODO: Needs comment
@@ -91,7 +91,7 @@ public class Board {
 	 */
 	public Board(int s) {
 		this.size = s;
-		this.stones = new Stone[this.size][this.size];
+		this.stones = new Stone[s][s];
 	} // end constructor
 
 	/**
@@ -104,8 +104,8 @@ public class Board {
 	public ArrayList<Chain> addStone(Stone s) {
 
 		// TODO: comment
-		LastTiziPosition = new Point(-1, -1);
-		lastNumTizi = 0;
+		this.lastTiziPosition = new Point(-1, -1);
+		this.lastNumTizi = 0;
 
 		// get location of stone on game board. The origin of the board is at
 		// the bottom left corner. X increases to the right, and y increases
@@ -115,7 +115,7 @@ public class Board {
 
 		// if this position is Yan, then remove the Stone from the Yan
 		// If Yan is occupied, then remove it from the ChainList
-		if (stones[x][y] != null) {
+		if (this.stones[x][y] != null) {
 
 			// ***** for chain color = 3 **************
 			Point p = new Point(0, 0);
@@ -138,8 +138,9 @@ public class Board {
 			// if the color of the chain's first stone is 3 or 4 (where 3 is
 			// black territory and 4 is white territory) then update the chains
 			// around that chain. otherwise, remove that stone from the chain.
-			if ((this.stones[p.x][p.y].getColor() == 3)
-					|| (this.stones[p.x][p.y].getColor() == 4))
+			if ((this.stones[p.x][p.y] != null)
+					&& ((this.stones[p.x][p.y].getColor() == 3) || (this.stones[p.x][p.y]
+							.getColor() == 4)))
 				this.stones[p.x][p.y].getChain().updateChains(s);
 			else
 				this.stones[x][y].getChain().removeStone(s);
@@ -396,7 +397,7 @@ public class Board {
 
 					// TODO: comment
 					if ((next.getColor() != 3) && (next.getColor() != 4)) {
-						this.LastTiziPosition = next.getLocation();
+						this.lastTiziPosition = next.getLocation();
 						r++;
 					} // end if
 
@@ -825,11 +826,11 @@ public class Board {
 	} // end setMoves()
 
 	public Point getLastTiziPosition() {
-		return this.LastTiziPosition;
+		return this.lastTiziPosition;
 	} // end getLastTiziPosition()
 
 	public void setLastTiziPosition(Point lastTiziPosition) {
-		this.LastTiziPosition = lastTiziPosition;
+		this.lastTiziPosition = lastTiziPosition;
 	} // end setLastTiziPosition()
 
 	public int getLastTiziNum() {

@@ -295,20 +295,25 @@ public class GamePlay implements Cloneable {
 
 				// update Wei
 				Wei newW = news.getWei();
-				if (newW.size() == 1) {
 
-					// problem is here // or is it lol
-					int index = b.realWeiIndex(news.getWei().getWeiIndex());
-					if (index > -1)
-						b.getWeis().remove(index);
-				} else {
-					int index = b.realWeiIndex(news.getWei().getWeiIndex());
-					if (index > -1)
-						b.getWeis()
-								.get(b.realWeiIndex(news.getWei().getWeiIndex()))
-								.remove(s);
+				if (newW != null) {
 
-				}
+					if (newW.size() == 1) {
+
+						// problem is here // or is it lol
+						int index = b.realWeiIndex(news.getWei().getWeiIndex());
+						if (index > -1)
+							b.getWeis().remove(index);
+					} else {
+						int index = b.realWeiIndex(news.getWei().getWeiIndex());
+						if (index > -1)
+							b.getWeis()
+									.get(b.realWeiIndex(news.getWei()
+											.getWeiIndex())).remove(s);
+
+					} // end if
+
+				} // end if
 
 				// Add the removed stones back
 				ArrayList<Chain> removedChain = m.getRemovedChain();
