@@ -1,17 +1,27 @@
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 
 /**
- * http://www.roseindia.net/java/example/java/awt/AwtImage.shtml
+ * GoPanel - graphic user interface for the go game board.
  * 
- * dx = 40 dy = 39 Top (39,38) Bottom (360,348)
+ * This file is part of Hadama Go.
  * 
+ * Hadama Go is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  * 
- * @author asteinb1
+ * Hadama Go is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
+ * You should have received a copy of the GNU General Public License along with
+ * Hadama Go. If not, see http://www.gnu.org/licenses/.
+ * 
+ * @author Haoran Ma (mahaoran1020@gmail.com), Adam Steinberger
+ *         (steinz08@gmail.com)
  */
 public class GoPanel extends Panel {
 
@@ -112,7 +122,7 @@ public class GoPanel extends Panel {
 					g.drawImage(GoPanel.lastMove, this.verticals[x],
 							this.horizontals[y], null);
 				}
-				
+
 			} // end for
 
 		} // end for

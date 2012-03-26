@@ -4,17 +4,29 @@ import java.util.Iterator;
 import java.util.TreeSet;
 
 /**
- * Head Node. Tail Node. Check Qis in order: top, right, bottom, left. If you
- * add stone of same color horiz/vert adjacent to chain, have tail of chain
- * point to new stone and set new stone as tail. If chain of same color
+ * Chain.java - Head Node. Tail Node. Check Qis in order: top, right, bottom,
+ * left. If you add stone of same color horiz/vert adjacent to chain, have tail
+ * of chain point to new stone and set new stone as tail. If chain of same color
  * horiz/vert adjacent to another chain, tail of first chain links to head of
  * second chain, then we add all nodes of second chain to first chain.
  * 
- * @author Haoran Ma <mahaoran1020@gmail.com>, Adam Steinberger
- *         <steinz08@gmail.com>
+ * This file is part of Hadama Go.
  * 
+ * Hadama Go is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * Hadama Go is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * Hadama Go. If not, see http://www.gnu.org/licenses/.
+ * 
+ * @author Haoran Ma (mahaoran1020@gmail.com), Adam Steinberger
+ *         (steinz08@gmail.com)
  */
-
 public class Chain extends TreeSet<Stone> {
 
 	/**

@@ -1,16 +1,30 @@
-/**
- * HadamaGo.java - This is the main game thread for playing Hadama Go! 
- * It setups the window and starts a new game.
- * 
- * @author Adam Steinberger <steinz08@gmail.com>, Haoran Ma <mahaoran1020@gmail.com>
- */
-
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.HashMap;
 
+/**
+ * HadamaGo.java - This is the main game thread for playing Hadama Go! It setups
+ * the window and starts a new game.
+ * 
+ * This file is part of Hadama Go.
+ * 
+ * Hadama Go is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * Hadama Go is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * Hadama Go. If not, see http://www.gnu.org/licenses/.
+ * 
+ * @author Haoran Ma (mahaoran1020@gmail.com), Adam Steinberger
+ *         (steinz08@gmail.com)
+ */
 public class HadamaGo extends Thread {
 
 	/**
@@ -21,7 +35,7 @@ public class HadamaGo extends Thread {
 	/**
 	 * Hard coded game mode calls for a human versus human player game.
 	 */
-	private static String gameMode = "HvC";
+	private static String gameMode = "HvH";
 
 	/**
 	 * The window frame dimensions are hard coded to 694 by 722 pixels.

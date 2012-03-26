@@ -2,6 +2,27 @@ import java.awt.*;
 import java.util.Iterator;
 import java.util.TreeSet;
 
+/**
+ * Wei - Friendly stones that are horizontally, vertically or diagonally
+ * adjacent to one another form a wei.
+ * 
+ * This file is part of Hadama Go.
+ * 
+ * Hadama Go is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * Hadama Go is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * Hadama Go. If not, see http://www.gnu.org/licenses/.
+ * 
+ * @author Haoran Ma (mahaoran1020@gmail.com), Adam Steinberger
+ *         (steinz08@gmail.com)
+ */
 public class Wei extends TreeSet<Stone> {
 	/**
 	 * Version ID required for ArrayLists.
@@ -41,7 +62,6 @@ public class Wei extends TreeSet<Stone> {
 
 	} // end addStone()
 
-	
 	// Remove the Stone from WeiList
 	public void removeStone(Stone s) {
 
@@ -57,7 +77,8 @@ public class Wei extends TreeSet<Stone> {
 		} // end while
 	}
 
-	// Check if the stones inside Wei, if the stone not belong to this Wei anymore then remove it from the Wei
+	// Check if the stones inside Wei, if the stone not belong to this Wei
+	// anymore then remove it from the Wei
 	public void recheckStones() {
 
 		TreeSet<Stone> toRemove = new TreeSet<Stone>();
@@ -144,7 +165,7 @@ public class Wei extends TreeSet<Stone> {
 			}
 		}
 	}
-	
+
 	public int getWeiIndex() {
 		return weiNum;
 	}

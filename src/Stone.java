@@ -3,10 +3,23 @@ import java.awt.Point;
 /**
  * Stone.java - Used to keep track of pieces on the board
  * 
- * @author Haoran Ma <mahaoran1020@gmail.com>, Adam Steinberger
- *         <steinz08@gmail.com>
+ * This file is part of Hadama Go.
+ * 
+ * Hadama Go is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * Hadama Go is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * Hadama Go. If not, see http://www.gnu.org/licenses/.
+ * 
+ * @author Haoran Ma (mahaoran1020@gmail.com), Adam Steinberger
+ *         (steinz08@gmail.com)
  */
-
 public class Stone implements Comparable<Stone>, Cloneable {
 
 	private static StoneComparator sComp = new StoneComparator();
@@ -452,7 +465,8 @@ public class Stone implements Comparable<Stone>, Cloneable {
 		return "Stone [Color=" + this.color + ", value=" + this.value
 				+ ", Belongto=" + this.belongto + ", isYan=" + this.isYan
 				+ ", isZhenYan=" + this.isZhenYan + ", isJiaYan="
-				+ this.isJiaYan + ", location= (" + this.location.x + ","+ this.location.y + ")]";
+				+ this.isJiaYan + ", location= (" + this.location.x + ","
+				+ this.location.y + ")]";
 	} // end toString()
 
 } // end class
