@@ -24,17 +24,18 @@ import java.util.TreeSet;
  *         (steinz08@gmail.com)
  */
 public class Wei extends TreeSet<Stone> {
+
 	/**
-	 * Version ID required for ArrayLists.
+	 * Version ID required for Hadama Go.
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 4781863948394812333L;
+
 	/**
 	 * Qis is an ArrayList of Points whose coordinates are those of the goboard
 	 * position of the chain's liberties. Liberties of a chain are positions on
 	 * the goboard that are horizontally or vertically adjacent to the chain and
 	 * are not occupied by an active stone.
 	 */
-
 	private Board goboard;
 	private int weiNum;
 	static int counterOfWei;
