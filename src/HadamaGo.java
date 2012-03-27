@@ -35,7 +35,7 @@ public class HadamaGo extends Thread {
 	/**
 	 * Hard coded game mode calls for a human versus human player game.
 	 */
-	private static String gameMode = "HvH";
+	private static String gameMode = "HvC";
 
 	/**
 	 * The window frame dimensions are hard coded to 694 by 722 pixels.

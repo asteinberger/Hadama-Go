@@ -28,10 +28,25 @@ public class MiniMax {
 	private ArrayList<Point> legalMovesWhite = new ArrayList<Point>();
 	private int size;
 	private GameListener gListen;
+	private ArrayList<Episode> episodes = new ArrayList<Episode>();
 
 	public MiniMax(GameListener gl, int s) {
 		this.size = s;
 		this.gListen = gl;
+		Episode e = new Episode();
+		e.add(new Point(2, 2));
+		e.add(new Point(2, 6));
+		e.add(new Point(6, 2));
+		e.add(new Point(6, 6));
+		this.episodes.add(e);
+		System.out.println(e);
+		e = new Episode();
+		e.add(new Point(2, 4));
+		e.add(new Point(4, 2));
+		e.add(new Point(4, 6));
+		e.add(new Point(6, 4));
+		this.episodes.add(e);
+		System.out.println(e);
 	} // end constructor
 
 	private void findLegalMoves(GamePlay game) {
@@ -42,14 +57,13 @@ public class MiniMax {
 			for (int col = 0; col < this.size; col++) {
 				Point p = new Point(row, col);
 				if (!illegalMovesBlack.contains(p)
-						&& !this.legalMovesBlack.contains(p)) {
+						&& !this.legalMovesBlack.contains(p))
 					this.legalMovesBlack.add(p);
-				} else if (illegalMovesBlack.contains(p)
-						&& this.legalMovesBlack.contains(p)) {
+				else if (illegalMovesBlack.contains(p)
+						&& this.legalMovesBlack.contains(p))
 					this.legalMovesBlack.remove(p);
-				}
-			}
-		}
+			} // end for
+		} // end for
 
 		ArrayList<Point> illegalMovesWhite = game.getGoboard()
 				.getIllegalMovesforWhite();
@@ -57,14 +71,13 @@ public class MiniMax {
 			for (int col = 0; col < this.size; col++) {
 				Point p = new Point(row, col);
 				if (!illegalMovesWhite.contains(p)
-						&& !this.legalMovesWhite.contains(p)) {
+						&& !this.legalMovesWhite.contains(p))
 					this.legalMovesWhite.add(p);
-				} else if (illegalMovesWhite.contains(p)
-						&& this.legalMovesWhite.contains(p)) {
+				else if (illegalMovesWhite.contains(p)
+						&& this.legalMovesWhite.contains(p))
 					this.legalMovesWhite.remove(p);
-				}
-			}
-		}
+			} // end for
+		} // end for
 
 	} // end findLegalMoves()
 
