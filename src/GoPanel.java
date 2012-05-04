@@ -1,27 +1,17 @@
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 
 /**
- * GoPanel - graphic user interface for the go game board.
+ * http://www.roseindia.net/java/example/java/awt/AwtImage.shtml
  * 
- * This file is part of Hadama Go.
+ * dx = 40 dy = 39 Top (39,38) Bottom (360,348)
  * 
- * Hadama Go is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
  * 
- * Hadama Go is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * @author asteinb1
  * 
- * You should have received a copy of the GNU General Public License along with
- * Hadama Go. If not, see http://www.gnu.org/licenses/.
- * 
- * @author Haoran Ma (mahaoran1020@gmail.com), Adam Steinberger
- *         (steinz08@gmail.com)
  */
 public class GoPanel extends Panel {
 
@@ -39,6 +29,7 @@ public class GoPanel extends Panel {
 	private static Image whiteStone;
 	private static Image lastMove;
 	private static Image cursor;
+	private static Image highlight;
 	private int color = 0;
 	private int[] verticals;
 	private int[] horizontals;
@@ -60,6 +51,7 @@ public class GoPanel extends Panel {
 		GoPanel.lastMove = ImageIO.read(new File("images/lastMove.gif"));
 
 		GoPanel.cursor = ImageIO.read(new File("images/goCursor.gif"));
+		GoPanel.highlight = ImageIO.read(new File("images/goHighlight.gif"));
 
 		this.setSize(400, 386);
 		// this.setMinimumSize(new Dimension(400, 386));
@@ -126,6 +118,20 @@ public class GoPanel extends Panel {
 			} // end for
 
 		} // end for
+		
+		Font f = new Font("Arial Bold", Font.PLAIN, 32);
+		g.setFont(f);
+
+		if (this.color == 0)
+			g.drawImage(GoPanel.highlight, 543, 193, null);
+		else
+			g.drawImage(GoPanel.highlight, 543, 293, null);
+
+		g.drawImage(GoPanel.blackStone, 560, 200, null);
+		g.drawString(Double.toString(this.goBoard.getScores()[0]), 617, 230);
+
+		g.drawImage(GoPanel.whiteStone, 560, 300, null);
+		g.drawString(Double.toString(this.goBoard.getScores()[1]), 617, 330);
 
 		g.drawImage(GoPanel.cursor, this.point.x, this.point.y, null);
 
@@ -286,4 +292,12 @@ public class GoPanel extends Panel {
 		this.mode = mode;
 	}
 
+	public static Image getHighlight() {
+		return highlight;
+	}
+
+	public static void setHighlight(Image highlight) {
+		GoPanel.highlight = highlight;
+	}
+	
 } // end class

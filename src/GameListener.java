@@ -3,24 +3,11 @@ import java.awt.event.*;
 import java.util.ArrayList;
 
 /**
- * GameListener.java - Handle user input for game graphic user interface.
+ * Top (39,38); Bottom (360,348)
  * 
- * This file is part of Hadama Go.
  * 
- * Hadama Go is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * @author asteinb1
  * 
- * Hadama Go is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * Hadama Go. If not, see http://www.gnu.org/licenses/.
- * 
- * @author Haoran Ma (mahaoran1020@gmail.com), Adam Steinberger
- *         (steinz08@gmail.com)
  */
 public class GameListener implements KeyListener, ActionListener,
 		MouseListener, MouseMotionListener {
@@ -69,15 +56,7 @@ public class GameListener implements KeyListener, ActionListener,
 		else if (s.equals("forfeit"))
 			this.forfeit();
 		else if (s.equals("undo move"))
-			try {
-				this.undoMove();
-			} catch (CloneNotSupportedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			this.undoMove();
 		else if (s.equals("new game"))
 			this.newGame();
 	} // end actionPerformed()
@@ -93,19 +72,10 @@ public class GameListener implements KeyListener, ActionListener,
 	@Override
 	public void keyTyped(KeyEvent arg0) {
 		char ch = arg0.getKeyChar();
-		try {
-			this.movePiece(ch);
-		} catch (CloneNotSupportedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		this.movePiece(ch);
 	} // end keyTyped()
 
-	private void movePiece(char ch) throws CloneNotSupportedException,
-			InterruptedException {
+	private void movePiece(char ch) {
 		if (!this.gameOver) {
 			switch (ch) {
 			case 'A':
@@ -156,6 +126,9 @@ public class GameListener implements KeyListener, ActionListener,
 		case 'C':
 		case 'c':
 			this.goBoard.printChains();
+			break;
+		case ']':
+			this.goBoard.printStones();
 			break;
 		case 'T':
 		case 't':
@@ -214,7 +187,6 @@ public class GameListener implements KeyListener, ActionListener,
 		this.gamePlay.forfeit(this.color);
 		this.gameOver = true;
 		this.gamePlay.setGameOver(this.gameOver);
-		this.updateScores();
 	} // end forfeit()
 
 	private void newGame() {
@@ -224,20 +196,16 @@ public class GameListener implements KeyListener, ActionListener,
 		this.gamePlay.setPlayer(0);
 		this.color = 0;
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
-		this.updateScores();
 	} // end newGame()
 
-	public void undoMove() throws CloneNotSupportedException,
-			InterruptedException {
+	private void undoMove() {
 		this.gamePlay.undoMove(this.goBoard);
 		this.togglePlayer();
 		HadamaGo.getGoPanel().setColor(this.color);
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
-		this.updateScores();
 	} // end undoMove()
 
-	public void placePiece() throws CloneNotSupportedException,
-			InterruptedException {
+	private void placePiece() {
 		this.gamePlay.placePiece(this.goBoard, this.color);
 		this.gameOver = this.gamePlay.isGameOver();
 		this.color = this.gamePlay.getPlayer();
@@ -246,16 +214,7 @@ public class GameListener implements KeyListener, ActionListener,
 		gp.setColor(this.color);
 		HadamaGo.setGoPanel(gp);
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
-		this.updateScores();
 	} // end placePiece()
-
-	private void updateScores() {
-		double[] scores = this.goBoard.getScores();
-		HadamaGo.getScoreBlack().setText(
-				"Black = " + Double.toString(scores[0]));
-		HadamaGo.getScoreWhite().setText(
-				"White = " + Double.toString(scores[1]));
-	} // end updateScores()
 
 	private void pass() {
 		if (this.gamePlay.getJustPassed()) {
@@ -267,7 +226,9 @@ public class GameListener implements KeyListener, ActionListener,
 			Stone ns = new Stone();
 			ns.setColor(this.color);
 			ArrayList<Chain> removedChains = new ArrayList<Chain>();
-			Move newMove = new Move(ns, removedChains, null, true);
+			Move newMove = new Move(ns, removedChains, null, true,
+					this.goBoard.getLastTiziPosition(),
+					this.goBoard.getLastTiziNum());
 			this.gamePlay.getGoboard().getMoves().push(newMove);
 			this.togglePlayer();
 			this.gamePlay.setJustPassed(true);
@@ -277,7 +238,6 @@ public class GameListener implements KeyListener, ActionListener,
 		this.gamePlay.setPlayer(this.color);
 		HadamaGo.getGoPanel().setColor(this.color);
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
-		this.updateScores();
 	} // end pass()
 
 	private void togglePlayer() {

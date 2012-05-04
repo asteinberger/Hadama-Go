@@ -1,30 +1,17 @@
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.Stack;
+import java.util.TreeSet;
 
 /**
  * GamePlay - place stones on board for both human and machine players.
  * 
- * This file is part of Hadama Go.
+ * @author Haoran Ma <mahaoran1020@gmail.com>, Adam Steinberger
+ *         <steinz08@gmail.com>
  * 
- * Hadama Go is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
- * 
- * Hadama Go is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * Hadama Go. If not, see http://www.gnu.org/licenses/.
- * 
- * @author Haoran Ma (mahaoran1020@gmail.com), Adam Steinberger
- *         (steinz08@gmail.com)
  */
-public class GamePlay implements Cloneable {
+public class GamePlay {
 
 	private Point location;
 	private Point point;
@@ -37,15 +24,16 @@ public class GamePlay implements Cloneable {
 	private boolean justPassed = false;
 	public String mode;
 	private int size;
-	private MiniMax miniMax;
 	private Point LastMovePostion;
-	private boolean isLearning = false;
-	private GameListener gListen;
+	private Point LastTiziPosition;
+	private int LastTiziNum;
+	private int alphaBetaDepth = 2;
+	private AlphaBeta ab = new AlphaBeta();
 
 	// private boolean huiti = false;
 
-	public GamePlay(GameListener gl, String m, int s) {
-		this.color = 0;
+	public GamePlay(String m, int s) {
+		this.color = -1;
 		this.mode = m;
 		this.size = s;
 		this.location = new Point(0, this.size - 1);
@@ -54,8 +42,6 @@ public class GamePlay implements Cloneable {
 		this.horizontals = new int[this.size];
 		this.verticals = new int[this.size];
 		this.goboard = new Board(this.size);
-		this.gListen = gl;
-		this.miniMax = new MiniMax(gl, s);
 	} // end constructor
 
 	/**
@@ -82,8 +68,8 @@ public class GamePlay implements Cloneable {
 	 * @param g
 	 *            game
 	 */
-	public GamePlay(GameListener gl, String m, int s, Point l, Point p,
-			Point i, int[] h, int[] v, Board g, int c) {
+	public GamePlay(String m, int s, Point l, Point p, Point i, int[] h,
+			int[] v, Board g, int c) {
 		this.mode = m;
 		this.size = s;
 		this.location = l;
@@ -93,79 +79,165 @@ public class GamePlay implements Cloneable {
 		this.verticals = v;
 		this.goboard = g;
 		this.color = c;
-		this.gListen = gl;
 	} // end constructor
 
 	// c = player stone color
-	public void placePiece(Board b, int c) throws CloneNotSupportedException,
-			InterruptedException {
+	public void placePiece(Board b, int c) {
 
+		this.color = c;
 		Point p = new Point(this.location.x, size - this.location.y - 1);
 		this.goboard = b;
-		ArrayList<Chain> removedChains = new ArrayList<Chain>();
 
-		if (c == 0) {
+		if (this.mode.equals("HvH")) {
+			if (c == 0) {
+				if (!this.goboard.getIllegalMovesforBlack().contains(p)) {
 
-			if (!b.getIllegalMovesforBlack().contains(p)) {
+					Point a = new Point(this.location.x, size - this.location.y
+							- 1);
+					Stone st = new Stone(this.color, a); // 0 is black 1 is
+															// white
+					ArrayList<Chain> removedChains = this.goboard.addStone(st);
+					this.justPassed = false;
+					// change player color
+					this.togglePlayer(this.color);
+					// store for undo move
+					Stone newst = (Stone) st.clone();
+					Move newMove = new Move(newst, removedChains,
+							this.LastMovePostion, false, this.LastTiziPosition,
+							this.LastTiziNum);
+					this.LastTiziNum = this.goboard.getLastTiziNum();
+					this.LastTiziPosition = this.goboard.getLastTiziPosition();
+					LastMovePostion = p;
+					this.goboard.getMoves().push(newMove);
+				}
+			}
 
+			if (c == 1) {
+
+				if (!this.goboard.getIllegalMovesforWhite().contains(p)) {
+
+					Point a = new Point(this.location.x, size - this.location.y
+							- 1);
+					Stone st = new Stone(this.color, a); // 0 is black 1 is
+															// white
+					ArrayList<Chain> removedChains = this.goboard.addStone(st);
+					this.justPassed = false;
+					// change player color
+					this.togglePlayer(this.color);
+					// store for undo move
+					Stone newst = (Stone) st.clone();
+					Move newMove = new Move(newst, removedChains,
+							this.LastMovePostion, false, this.LastTiziPosition,
+							this.LastTiziNum);
+					this.LastTiziNum = this.goboard.getLastTiziNum();
+					this.LastTiziPosition = this.goboard.getLastTiziPosition();
+					LastMovePostion = p;
+
+					this.goboard.getMoves().push(newMove);
+				}
+			}
+		}// end mode HvH
+
+		else if (this.mode.equals("HvC")) {
+
+			// Human Move first, that is Black
+			if (!this.goboard.getIllegalMovesforBlack().contains(p)) {
+			
 				Point a = new Point(this.location.x, size - this.location.y - 1);
-				Stone st = new Stone(c, a); // 0 is black 1 is white
-				removedChains = this.goboard.addStone(st);
+				Stone st = new Stone(this.color, a); 
+				ArrayList<Chain> removedChains = this.goboard.addStone(st);
 				this.justPassed = false;
-				if ((this.mode.equals("HvC") || this.mode.equals("CvH"))
-						&& !isLearning) {
-					if (c == 0)
-						// this.moveOpponent(b, 1);
-						this.miniMax
-								.makeBestMoveForMax((GamePlay) this.clone());
-					else
-						// this.moveOpponent(b, 0);
-						this.miniMax
-								.makeBestMoveForMin((GamePlay) this.clone());
-				} else if (!isLearning)
-					this.togglePlayer(c);
-
+				// change player color
+				this.togglePlayer(this.color);
+				// store for undo move
 				Stone newst = (Stone) st.clone();
 				Move newMove = new Move(newst, removedChains,
-						this.LastMovePostion, false);
+						this.LastMovePostion, false, this.LastTiziPosition,
+						this.LastTiziNum);
+				this.LastTiziNum = this.goboard.getLastTiziNum();
+				this.LastTiziPosition = this.goboard.getLastTiziPosition();
+				LastMovePostion = p;
+				this.goboard.getMoves().push(newMove);
 
+				// alpha-beta player turn, that is white
+				Point pAI = ab.AlphaBetaSearch(this.color, this,
+						this.alphaBetaDepth);
+				Stone stAI = new Stone(this.color, pAI);
+				ArrayList<Chain> removedChainsAI = this.goboard.addStone(stAI);
+				this.justPassed = false;
+				// change player color
+				this.togglePlayer(this.color);
+				// store for undo move
+				Stone newstAI = (Stone) stAI.clone();
+				Move newMoveAI = new Move(newstAI, removedChainsAI,
+						this.LastMovePostion, false, this.LastTiziPosition,
+						this.LastTiziNum);
+				this.LastTiziNum = this.goboard.getLastTiziNum();
+				this.LastTiziPosition = this.goboard.getLastTiziPosition();
+				LastMovePostion = pAI;
+				this.goboard.getMoves().push(newMoveAI);
+			}
+		}
+
+		else if (this.mode.equals("RLvH") || this.mode.equals("HvRL")) {
+
+		}
+
+	} // end placePiece()
+
+	public void placePieceAlphaBeta(Board b, int c) {
+		this.color = c;
+		Point p = new Point(this.location.x, size - this.location.y - 1);
+		this.goboard = b;
+
+		if (c == 0) {
+			if (!this.goboard.getIllegalMovesforBlack().contains(p)) {
+
+				Point a = new Point(this.location.x, size - this.location.y
+						- 1);
+				Stone st = new Stone(this.color, a); // 0 is black 1 is
+														// white
+				ArrayList<Chain> removedChains = this.goboard.addStone(st);
+				this.justPassed = false;
+				// change player color
+				this.togglePlayer(this.color);
+				// store for undo move
+				Stone newst = (Stone) st.clone();
+				Move newMove = new Move(newst, removedChains,
+						this.LastMovePostion, false, this.LastTiziPosition,
+						this.LastTiziNum);
+				this.LastTiziNum = this.goboard.getLastTiziNum();
+				this.LastTiziPosition = this.goboard.getLastTiziPosition();
 				LastMovePostion = p;
 				this.goboard.getMoves().push(newMove);
 			}
-
 		}
 
 		if (c == 1) {
 
-			if (!b.getIllegalMovesforWhite().contains(p)) {
+			if (!this.goboard.getIllegalMovesforWhite().contains(p)) {
 
-				Point a = new Point(this.location.x, size - this.location.y - 1);
-				Stone st = new Stone(c, a); // 0 is black 1 is white
-				removedChains = this.goboard.addStone(st);
+				Point a = new Point(this.location.x, size - this.location.y
+						- 1);
+				Stone st = new Stone(this.color, a); // 0 is black 1 is
+														// white
+				ArrayList<Chain> removedChains = this.goboard.addStone(st);
 				this.justPassed = false;
-				if ((this.mode.equals("HvC") || this.mode.equals("CvH"))
-						&& !isLearning) {
-					if (c == 0)
-						// this.moveOpponent(b, 1);
-						this.miniMax
-								.makeBestMoveForMax((GamePlay) this.clone());
-					else
-						// this.moveOpponent(b, 0);
-						this.miniMax
-								.makeBestMoveForMin((GamePlay) this.clone());
-				} else if (!isLearning)
-					this.togglePlayer(c);
-
+				// change player color
+				this.togglePlayer(this.color);
+				// store for undo move
 				Stone newst = (Stone) st.clone();
 				Move newMove = new Move(newst, removedChains,
-						this.LastMovePostion, false);
-
+						this.LastMovePostion, false, this.LastTiziPosition,
+						this.LastTiziNum);
+				this.LastTiziNum = this.goboard.getLastTiziNum();
+				this.LastTiziPosition = this.goboard.getLastTiziPosition();
 				LastMovePostion = p;
-				this.goboard.getMoves().push(newMove);
 
+				this.goboard.getMoves().push(newMove);
 			}
 		}
-	} // end placePiece()
+	}// end placePieceAlphaBeta
 
 	protected void togglePlayer(int p) {
 		if (p == 0) {
@@ -185,28 +257,12 @@ public class GamePlay implements Cloneable {
 		this.goboard.setIllegalMovesforBlack(new ArrayList<Point>());
 		this.goboard.setIllegalMovesforWhite(new ArrayList<Point>());
 		this.LastMovePostion = null;
+		this.LastTiziNum = 0;
+		this.LastTiziPosition = null;
+
 	} // end newGame()
 
-	public void moveOpponent(Board b, int c) {
-
-		if (!this.gameOver) {
-
-			Random rand = new Random(System.currentTimeMillis());
-			int oppX = rand.nextInt(9);
-			int oppY = rand.nextInt(9);
-
-			Point a = new Point(oppX, oppY);
-			Stone s = new Stone(c, a); // 0 is black 1 is white
-			this.goboard.addStone(s);
-
-		} else {
-			this.gameOver();
-		} // else if
-
-	} // end moveOpponent()
-
-	public void undoMove(Board b) throws CloneNotSupportedException,
-			InterruptedException {
+	public void undoMove(Board b) {
 		if (b.getMoves().size() == 0) {
 			System.out.println("No move has been made!");
 		} else {
@@ -217,118 +273,58 @@ public class GamePlay implements Cloneable {
 				Point location = s.getLocation();
 				Stone news = b.getStone(location);
 				Chain newc = news.getChain();
+				Chain[] lc = news.checkChains(b.getBoard());
+				Wei[] lw = news.checkWeis(b.getBoard());
 
 				// update this stone's chain, if the size is 1 which we want to
 				// move
 				// from the chains
-				if ((newc != null) && (newc.size() == 1)) {
-					b.getChains().remove(
-							b.realChainIndex(news.getChain().getChainIndex()));
+				if (newc.size() == 1) {
+					b.getChains().remove(news.getChain());
 				}
 
-				// remove the stone from the board
+				// Step 1: Remove the stone from the board
 				b.getBoard()[location.x][location.y] = null;
 
-				// update the surrounding qis
-
-				Chain[] lc = news.checkChains(b.getBoard());
-
-				int c0 = 0;
-				int c1 = 0;
-				int c2 = 0;
-				int c3 = 0;
-				if (lc[0] != null) {
-					c0 = lc[0].getChainIndex();
-				}
-
-				if (lc[1] != null) {
-					c1 = lc[1].getChainIndex();
-				}
-				if (lc[2] != null) {
-					c2 = lc[2].getChainIndex();
-				}
-				if (lc[3] != null) {
-					c3 = lc[3].getChainIndex();
-
-				}
-
-				if (lc[0] != null) {
-					if (lc[0].first().getColor() != -1) {
-
-						// if they are different color
-						if (lc[0].first().getColor() != s.getColor()) {
-							lc[0].deeplyrecheckQis();
-						}
-						// if they are same color
-						else {
-							lc[0].updateChains(s);
-						}
-					}
-				}
-				if (lc[1] != null && c0 != c1 && lc[1].size() != 0) {
-					if (lc[1].first().getColor() != -1) {
-						// if they are different color
-						if (lc[1].first().getColor() != s.getColor()) {
-							lc[1].deeplyrecheckQis();
-						}
-						// if they are same color
-						else {
-							if (b.realChainIndex(lc[1].getChainIndex()) != -1)
-								lc[1].updateChains(s);
-						}
-					}
-				}
-				if (lc[2] != null && c2 != c0 && c2 != c1 && lc[2].size() != 0) {
-					if (lc[2].first().getColor() != -1) {
-						// if they are different color
-						if (lc[2].first().getColor() != s.getColor()) {
-							lc[2].deeplyrecheckQis();
-						}
-						// if they are same color
-						else {
-							if (b.realChainIndex(lc[2].getChainIndex()) != -1)
-								lc[2].updateChains(s);
-						}
-					}
-				}
-				if (lc[3] != null && c3 != c0 && c3 != c1 && c3 != c2
-						&& lc[3].size() != 0) {
-					if (lc[3].first().getColor() != -1) {
-						// if they are different color
-						if (lc[3].first().getColor() != s.getColor()) {
-							lc[3].deeplyrecheckQis();
-						}
-						// if they are same color
-						else {
-							if (b.realChainIndex(lc[3].getChainIndex()) != -1)
-								lc[3].updateChains(s);
+				// Step 2: Update the surrounding Stones
+				// If they have different colors
+				ArrayList<Chain> chainList = new ArrayList<Chain>();
+				for (int i = 0; i < 4; i++) {
+					if (lc[i] != null && !lc[i].isEmpty()) {
+						if ((lc[i].first().getColor() != -1)
+								&& (lc[i].first().getColor() != s.getColor())
+								&& !chainList.contains(lc[i])) {
+							chainList.add(lc[i]);
 						}
 					}
 				}
 
-				// update Wei
-				Wei newW = news.getWei();
+				for (int j = 0; j < chainList.size(); j++) {
+					chainList.get(j).deeplyrecheckQis();
+				}
 
-				if (newW != null) {
+				// If they have the same colors
+				ArrayList<Wei> weiList = new ArrayList<Wei>();
+				for (int i = 0; i < 8; i++) {
+					if (lw[i] != null && !lw[i].isEmpty()) {
+						if ((lw[i].first().getColor() != -1)
+								&& (lw[i].first().getColor() == s.getColor())
+								&& !weiList.contains(lw[i])) {
+							weiList.add(lw[i]);
+						}
+					}
+				}
 
-					if (newW.size() == 1) {
+				if (weiList.size() == 0) {
+					b.getWeis().remove(lw[8]);
+				} else {
+					for (int j = 0; j < weiList.size(); j++) {
+						weiList.get(j).updateWeis(s);
+					}
 
-						// problem is here // or is it lol
-						int index = b.realWeiIndex(news.getWei().getWeiIndex());
-						if (index > -1)
-							b.getWeis().remove(index);
-					} else {
-						int index = b.realWeiIndex(news.getWei().getWeiIndex());
-						if (index > -1)
-							b.getWeis()
-									.get(b.realWeiIndex(news.getWei()
-											.getWeiIndex())).remove(s);
+				}
 
-					} // end if
-
-				} // end if
-
-				// Add the removed stones back
+				// Step 3: Add the removed stones back
 				ArrayList<Chain> removedChain = m.getRemovedChain();
 				for (int i = 0; i < removedChain.size(); i++) {
 					Chain c = removedChain.get(i);
@@ -339,44 +335,97 @@ public class GamePlay implements Cloneable {
 					}
 				}// end for
 
-				// I want to change the player color
+				// Step 4: Update Yans
+				Stone news1 = b.getStone(location);
+				Chain[] lc1 = news1.checkChains(b.getBoard());
 
-				if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
-					if (s.getColor() == 0)
-						this.miniMax
-								.makeBestMoveForMax((GamePlay) this.clone());
-					else
-						this.miniMax
-								.makeBestMoveForMin((GamePlay) this.clone());
-				} else
-					this.togglePlayer(s.getColor());
+				Chain list = s.getChain();
+				list.clear();
+				list.setYan(true);
+				TreeSet<Qi> qis = new TreeSet<Qi>();
+				list.setQis(qis);
+				Stone stone = new Stone();
+				boolean control = false;
 
-				// set the last Move icon
+				ArrayList<Chain> yanList = new ArrayList<Chain>();
+				for (int i = 0; i < 4; i++) {
+					if (lc1[i] != null && !yanList.contains(lc1[i])) {
+						yanList.add(lc1[i]);
+					}
+				}
+
+				for (int j = 0; j < yanList.size(); j++) {
+					if (yanList.get(j).first().getColor() != 0
+							&& (yanList.get(j).first().getColor() != 1)) {
+						Iterator<Stone> it = yanList.get(j).iterator();
+						while (it.hasNext()) {
+							Stone next = it.next();
+							this.goboard.getChains().remove(next.getChain());
+							next.setChain(list);
+							list.add(next);
+							stone = next;
+						}
+						control = true;
+					}
+				}
+
+				if (control) {
+					s.setColor(stone.getColor());
+					s.setYan(true);
+					s.setWei(null);
+					s.setChain(stone.getChain());
+					s.setBelongto(stone.getBelongto());
+					s.setJiaYan(stone.isJiaYan());
+					s.setZhenYan(stone.isZhenYan());
+					list.add(s);
+					b.getBoard()[location.x][location.y] = s;
+
+					if (list.deeplyrecheckQis() > 0) {
+
+						Iterator<Stone> it1 = list.iterator();
+						while (it1.hasNext()) {
+							Stone next = it1.next();
+							Point location1 = next.getLocation();
+							b.getBoard()[location1.x][location1.y] = null;
+
+							this.goboard.getChains().remove(next.getChain());
+
+						}
+
+					} else if (list.deeplyrecheckQis() == 0) {
+						this.goboard.getChains().add(list);
+					}
+
+				}
+				// Step 5: Change the player color
+				this.togglePlayer(this.color);
+
+				// Step 6: Set the last Move icon
 				Point lm = m.getlastMove();
 				this.LastMovePostion = lm;
+
+				// //Step 7: Make lastTiziPosition = Stones we just added back
+				this.goboard.setLastTiziPosition(m.getlastTiziPosition());
+				this.goboard.setLastTiziNum(m.getlastNumTizi());
+				this.LastTiziPosition = m.getlastTiziPosition();
+				this.LastTiziNum = m.getlastNumTizi();
 
 			}// end if
 			else {
 
-				if (this.mode.equals("HvC") || this.mode.equals("CvH")) {
-					if (s.getColor() == 0)
-						this.miniMax
-								.makeBestMoveForMax((GamePlay) this.clone());
-					else
-						this.miniMax
-								.makeBestMoveForMin((GamePlay) this.clone());
-				} else
-					this.togglePlayer(s.getColor());
-
-				// this is a bug
+				// I want to change the player color
+				this.togglePlayer(this.color);
 				this.justPassed = false;
-
+				this.goboard.setLastTiziPosition(m.getlastTiziPosition());
+				this.goboard.setLastTiziNum(m.getlastNumTizi());
+				this.LastTiziPosition = m.getlastTiziPosition();
+				this.LastTiziNum = m.getlastNumTizi();
 			}// end else
 
 		}// end else
 
-		if (!b.getMoves().isEmpty()) {
-			Move testm = b.getMoves().peek();
+		if (!this.goboard.getMoves().isEmpty()) {
+			Move testm = this.goboard.getMoves().peek();
 			boolean nextip = testm.getisPass();
 			if (nextip) {
 				this.justPassed = true;
@@ -478,32 +527,8 @@ public class GamePlay implements Cloneable {
 		this.justPassed = justPassed;
 	} // end setJustPassed()
 
-	public MiniMax getMiniMax() {
-		return miniMax;
-	}
-
-	public void setMiniMax(MiniMax miniMax) {
-		this.miniMax = miniMax;
-	}
-
 	public Point getlastMovePosition() {
 		return this.LastMovePostion;
-	}
-
-	public boolean isLearning() {
-		return isLearning;
-	}
-
-	public void setLearning(boolean isLearning) {
-		this.isLearning = isLearning;
-	}
-
-	public GameListener getgListen() {
-		return gListen;
-	}
-
-	public void setgListen(GameListener gListen) {
-		this.gListen = gListen;
 	}
 
 } // end class

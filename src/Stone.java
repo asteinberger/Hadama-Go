@@ -3,23 +3,10 @@ import java.awt.Point;
 /**
  * Stone.java - Used to keep track of pieces on the board
  * 
- * This file is part of Hadama Go.
- * 
- * Hadama Go is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
- * 
- * Hadama Go is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * Hadama Go. If not, see http://www.gnu.org/licenses/.
- * 
- * @author Haoran Ma (mahaoran1020@gmail.com), Adam Steinberger
- *         (steinz08@gmail.com)
+ * @author Haoran Ma <mahaoran1020@gmail.com>, Adam Steinberger
+ *         <steinz08@gmail.com>
  */
+
 public class Stone implements Comparable<Stone>, Cloneable {
 
 	private static StoneComparator sComp = new StoneComparator();
@@ -117,9 +104,8 @@ public class Stone implements Comparable<Stone>, Cloneable {
 		int y = this.location.y;
 		int size = b.length;
 
-		// { top, right, bottom, left, top-left, top-right, bottom-right,
-		// bottom-left }
-		Wei[] result = { null, null, null, null, null, null, null, null };
+		// { top, right, bottom, left, top-left, top-right, bottom-right, bottom-left, center }
+		Wei[] result = { null, null, null, null, null, null, null, null, null};
 
 		// top
 		if ((y < size - 1) && (b[x][y + 1] != null))
@@ -146,6 +132,10 @@ public class Stone implements Comparable<Stone>, Cloneable {
 		// bottom-left
 		if ((y > 0) && (x > 0) && (b[x - 1][y - 1] != null))
 			result[7] = b[x - 1][y - 1].getWei();
+		
+		// center
+		if ((b[x][y] != null))
+			result[8] = b[x][y].getWei();
 
 		return result;
 
@@ -158,9 +148,9 @@ public class Stone implements Comparable<Stone>, Cloneable {
 
 		int size = b.length;
 
-		// { top, right, bottom, left, top-left, top-right, bottom-right,
+		// { top, right, bottom, left, top-left, top-right, bottom-right,center
 		// bottom-left }
-		Chain[] result = { null, null, null, null, null, null, null, null };
+		Chain[] result = { null, null, null, null, null, null, null, null, null};
 
 		// top
 		if ((y < size - 1) && (b[x][y + 1] != null))
@@ -187,6 +177,9 @@ public class Stone implements Comparable<Stone>, Cloneable {
 		// bottom-left
 		if ((y > 0) && (x > 0) && (b[x - 1][y - 1] != null))
 			result[7] = b[x - 1][y - 1].getChain();
+		// center
+		if (b[x][y] != null)
+			result[8] = b[x][y].getChain();
 		return result;
 	} // end checkChains()
 
@@ -465,8 +458,7 @@ public class Stone implements Comparable<Stone>, Cloneable {
 		return "Stone [Color=" + this.color + ", value=" + this.value
 				+ ", Belongto=" + this.belongto + ", isYan=" + this.isYan
 				+ ", isZhenYan=" + this.isZhenYan + ", isJiaYan="
-				+ this.isJiaYan + ", location= (" + this.location.x + ","
-				+ this.location.y + ")]";
+				+ this.isJiaYan + ", location= (" + this.location.x + ","+ this.location.y + ")]";
 	} // end toString()
 
 } // end class

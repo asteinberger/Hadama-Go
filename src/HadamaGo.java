@@ -1,30 +1,16 @@
+/**
+ * HadamaGo.java - This is the main game thread for playing Hadama Go! 
+ * It setups the window and starts a new game.
+ * 
+ * @author Adam Steinberger <steinz08@gmail.com>, Haoran Ma <mahaoran1020@gmail.com>
+ */
+
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.HashMap;
 
-/**
- * HadamaGo.java - This is the main game thread for playing Hadama Go! It setups
- * the window and starts a new game.
- * 
- * This file is part of Hadama Go.
- * 
- * Hadama Go is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
- * 
- * Hadama Go is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * Hadama Go. If not, see http://www.gnu.org/licenses/.
- * 
- * @author Haoran Ma (mahaoran1020@gmail.com), Adam Steinberger
- *         (steinz08@gmail.com)
- */
 public class HadamaGo extends Thread {
 
 	/**
@@ -78,8 +64,6 @@ public class HadamaGo extends Thread {
 	private static GoPanel goPanel;
 	private static Panel panel;
 	private static HashMap<String, Button> buttons = new HashMap<String, Button>();
-	private static TextField scoreBlack = new TextField(12);
-	private static TextField scoreWhite = new TextField(12);
 
 	// d = dahi
 	// t = testFrame
@@ -91,12 +75,11 @@ public class HadamaGo extends Thread {
 		this.size = s;
 		HadamaGo.length = s;
 		this.goboard = new Board(this.size);
-		HadamaGo.gamePlay = new GamePlay(HadamaGo.gListen, HadamaGo.gameMode,
-				HadamaGo.length);
+		HadamaGo.gamePlay = new GamePlay(HadamaGo.gameMode, HadamaGo.length);
 		HadamaGo.goPanel = new GoPanel(this.goboard, HadamaGo.gamePlay);
 		HadamaGo.gListen = new GameListener(this, this.goboard, this.size,
 				HadamaGo.gamePlay);
-		this.testFrame = new Frame("Hadama Go v10.11");
+		this.testFrame = new Frame("Hadama Go Beta 1.0 Armadillo");
 	} // end constructor
 
 	public static void main(String[] args) throws IOException {
@@ -119,22 +102,14 @@ public class HadamaGo extends Thread {
 		this.addButton("undo move");
 		this.addButton("new game");
 
-		double[] scores = this.goboard.getScores();
-		HadamaGo.scoreBlack.addActionListener(HadamaGo.gListen);
-		HadamaGo.scoreWhite.addActionListener(HadamaGo.gListen);
-		HadamaGo.scoreBlack.setText("Black = " + Double.toString(scores[0]));
-		HadamaGo.scoreWhite.setText("White = " + Double.toString(scores[1]));
-
 		HadamaGo.panel = new Panel();
 		HadamaGo.panel.setLayout(new FlowLayout());
 		HadamaGo.panel.setSize(722, 20);
-
+		
 		HadamaGo.panel.add(HadamaGo.buttons.get("pass turn"));
 		HadamaGo.panel.add(HadamaGo.buttons.get("forfeit"));
 		HadamaGo.panel.add(HadamaGo.buttons.get("undo move"));
 		HadamaGo.panel.add(HadamaGo.buttons.get("new game"));
-		HadamaGo.panel.add(HadamaGo.scoreBlack);
-		HadamaGo.panel.add(HadamaGo.scoreWhite);
 
 		this.testFrame.add(HadamaGo.goPanel, BorderLayout.CENTER);
 		this.testFrame.add(HadamaGo.panel, BorderLayout.SOUTH);
@@ -271,22 +246,6 @@ public class HadamaGo extends Thread {
 
 	public static void setFrameLength(int frameLength) {
 		HadamaGo.frameLength = frameLength;
-	}
-
-	public static TextField getScoreBlack() {
-		return HadamaGo.scoreBlack;
-	}
-
-	public void setScoreBlack(TextField scoreBlack) {
-		HadamaGo.scoreBlack = scoreBlack;
-	}
-
-	public static TextField getScoreWhite() {
-		return HadamaGo.scoreWhite;
-	}
-
-	public void setScoreWhite(TextField scoreWhite) {
-		HadamaGo.scoreWhite = scoreWhite;
 	}
 
 } // end class
