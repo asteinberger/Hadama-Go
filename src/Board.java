@@ -667,6 +667,39 @@ public class Board {
 
 	}
 
+	public String getCodes() {
+
+		String codes = "";
+
+		for (int row = 0; row < this.size; row++) {
+
+			for (int col = 0; col < this.size; col++) {
+
+				Stone input = this.stones[row][col];
+
+				int in = -1;
+				if (input != null)
+					in = input.getColor();
+
+				switch (in) {
+				case 0:
+					codes += "01";
+					break;
+				case 1:
+					codes += "10";
+					break;
+				default:
+					codes += "00";
+				} // end switch
+
+			} // end for
+
+		} // end for
+
+		return codes;
+
+	} // end getCodes()
+
 	public void printMoves() {
 		System.out.println("" + this.moves.size() + " moves");
 		Iterator<Move> it = moves.iterator();

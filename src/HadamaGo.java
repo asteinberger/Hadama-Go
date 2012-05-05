@@ -21,7 +21,7 @@ public class HadamaGo extends Thread {
 	/**
 	 * Hard coded game mode calls for a human versus human player game.
 	 */
-	private static String gameMode = "HvC";
+	private static String gameMode = "Train";
 
 	/**
 	 * The window frame dimensions are hard coded to 694 by 722 pixels.
@@ -69,7 +69,7 @@ public class HadamaGo extends Thread {
 	// t = testFrame
 	// g = goboard
 	// m = mode
-	public HadamaGo(String m, int s) throws IOException {
+	public HadamaGo(String m, int s) throws Exception {
 		this.game = this;
 		HadamaGo.gameMode = m;
 		this.size = s;
@@ -79,10 +79,10 @@ public class HadamaGo extends Thread {
 		HadamaGo.goPanel = new GoPanel(this.goboard, HadamaGo.gamePlay);
 		HadamaGo.gListen = new GameListener(this, this.goboard, this.size,
 				HadamaGo.gamePlay);
-		this.testFrame = new Frame("Hadama Go Beta 1.0 Armadillo");
+		this.testFrame = new Frame("Hadama Go Beta 1.1 Armadillo");
 	} // end constructor
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 		HadamaGo g = new HadamaGo(HadamaGo.gameMode, HadamaGo.length);
 		g.start();
 	} // end main()
@@ -105,7 +105,7 @@ public class HadamaGo extends Thread {
 		HadamaGo.panel = new Panel();
 		HadamaGo.panel.setLayout(new FlowLayout());
 		HadamaGo.panel.setSize(722, 20);
-		
+
 		HadamaGo.panel.add(HadamaGo.buttons.get("pass turn"));
 		HadamaGo.panel.add(HadamaGo.buttons.get("forfeit"));
 		HadamaGo.panel.add(HadamaGo.buttons.get("undo move"));
@@ -218,15 +218,15 @@ public class HadamaGo extends Thread {
 
 	public static int getLength() {
 		return length;
-	}
+	} // end getLength()
 
 	public static void setLength(int length) {
 		HadamaGo.length = length;
-	}
+	} // end setLength()
 
 	public static String getGameMode() {
 		return gameMode;
-	}
+	} // end getGameMode()
 
 	public static void setGameMode(String gameMode) {
 		HadamaGo.gameMode = gameMode;
