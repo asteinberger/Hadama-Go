@@ -4,21 +4,23 @@ public class Think {
 
 	public static void main(String[] args) throws Exception {
 
-		NeuralNetwork network = new NeuralNetwork(2, 4, 1);
+		// NeuralNetwork network = new NeuralNetwork(2, 4, 1);
 
-		double[][] inputs = { { 1, 1 }, { 1, 0 }, { 0, 1 }, { 0, 0 } };
-		network.setInputs(inputs);
+		NeuralNetwork network = new NeuralNetwork(2, 4, 1, "think.txt");
 
-		double[][] outputs = { { 0 }, { 1 }, { 1 }, { 0 } };
-		network.setExpectedOutputs(outputs);
+		// double[][] inputs = { { 1, 1 }, { 1, 0 }, { 0, 1 }, { 0, 0 } };
+		// network.setInputs(inputs);
+		//
+		// double[][] outputs = { { 0 }, { 1 }, { 1 }, { 0 } };
+		// network.setExpectedOutputs(outputs);
 
-		System.out.println("Network Before Thinking:");
-		System.out.println(network);
-		System.out.println(" ");
+		// System.out.println("Network Before Thinking:");
+		// System.out.println(network);
+		// System.out.println(" ");
 
-		int maxRuns = 50000;
-		double minError = 0.001;
-		network.run(maxRuns, minError, "think.txt");
+		// int maxRuns = 50000;
+		// double minError = 0.001;
+		// network.run(maxRuns, minError, "think.txt");
 
 		System.out.println("Network After Thinking:");
 		System.out.println(network);

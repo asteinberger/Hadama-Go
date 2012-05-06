@@ -44,14 +44,20 @@ public class NetworkTrainer {
 		NetworkTrainer netTrain = new NetworkTrainer(162, 40, 2, 0.001, 0.9f,
 				0.7f, 50000, 0.001);
 
+		NeuralNetwork network = new NeuralNetwork(162, 40, 2,
+				"networkWeights.txt");
+		netTrain.setNetwork(network);
+
+		System.out.println(netTrain.getNetwork());
+
 		System.out.println("Parse Data for Network Trainer");
 
 		netTrain.parseData();
 
 		System.out.println("Setup Network Data for Network Trainer");
 
-		double[][] in = netTrain.trimData(netTrain.getTrainInput(), 1000);
-		double[][] out = netTrain.trimData(netTrain.getTrainOutput(), 1000);
+		double[][] in = netTrain.trimData(netTrain.getTrainInput(), 2500);
+		double[][] out = netTrain.trimData(netTrain.getTrainOutput(), 2500);
 
 		netTrain.setTrainInput(in);
 		netTrain.setTrainOutput(out);

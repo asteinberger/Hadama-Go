@@ -38,6 +38,7 @@ public class GamePlay {
 	private int LastTiziNum;
 	private int alphaBetaDepth = 2;
 	private AlphaBeta ab = new AlphaBeta();
+	private QLearning ql = new QLearning(0.001, 0.01);
 	private NetworkTrainer netTrain = new NetworkTrainer(162, 40, 2, 0.0001,
 			0.9f, 0.7f, 50000, 0.0001);
 	private NeuralNetwork network;
@@ -255,7 +256,42 @@ public class GamePlay {
 		} // end if
 
 		else if (this.mode.equals("RLvH") || this.mode.equals("HvRL")) {
+			// Human Move first, that is Black
+			if (!this.goboard.getIllegalMovesforBlack().contains(p)) {
 
+				Point a = new Point(this.location.x, size - this.location.y - 1);
+				Stone st = new Stone(this.color, a);
+				ArrayList<Chain> removedChains = this.goboard.addStone(st);
+				this.justPassed = false;
+				// change player color
+				this.togglePlayer(this.color);
+				// store for undo move
+				Stone newst = (Stone) st.clone();
+				Move newMove = new Move(newst, removedChains,
+						this.LastMovePostion, false, this.LastTiziPosition,
+						this.LastTiziNum);
+				this.LastTiziNum = this.goboard.getLastTiziNum();
+				this.LastTiziPosition = this.goboard.getLastTiziPosition();
+				LastMovePostion = p;
+				this.goboard.getMoves().push(newMove);
+
+				// alpha-beta player turn, that is white
+				Point pAI = ql.iterateValue(this.color, this);
+				Stone stAI = new Stone(this.color, pAI);
+				ArrayList<Chain> removedChainsAI = this.goboard.addStone(stAI);
+				this.justPassed = false;
+				// change player color
+				this.togglePlayer(this.color);
+				// store for undo move
+				Stone newstAI = (Stone) stAI.clone();
+				Move newMoveAI = new Move(newstAI, removedChainsAI,
+						this.LastMovePostion, false, this.LastTiziPosition,
+						this.LastTiziNum);
+				this.LastTiziNum = this.goboard.getLastTiziNum();
+				this.LastTiziPosition = this.goboard.getLastTiziPosition();
+				LastMovePostion = pAI;
+				this.goboard.getMoves().push(newMoveAI);
+			}
 		}
 
 	}// end placePiece()
@@ -668,6 +704,14 @@ public class GamePlay {
 
 	public void setNetwork(NeuralNetwork network) {
 		this.network = network;
+	}
+
+	public QLearning getQl() {
+		return ql;
+	}
+
+	public void setQl(QLearning ql) {
+		this.ql = ql;
 	}
 
 } // end class

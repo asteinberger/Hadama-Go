@@ -83,6 +83,91 @@ public class NeuralNetwork {
 
 	} // end constructor
 
+	public NeuralNetwork(int input, int hidden, int output, String fileName)
+			throws Exception {
+
+		this.layers = new int[] { input, hidden, output };
+
+		FileInputStream fstream = new FileInputStream(fileName);
+		DataInputStream in = new DataInputStream(fstream);
+		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+
+		ArrayList<String> data = new ArrayList<String>();
+		String strLine;
+
+		while ((strLine = br.readLine()) != null)
+			data.add(strLine);
+
+		in.close();
+
+		String[] hl = data.get(0).split(" ");
+		String[] ol = data.get(1).split(" ");
+
+		for (int i = 0; i < this.layers.length; i++) {
+
+			if (i == 0) { // input layer
+
+				for (int j = 0; j < this.layers[i]; j++) {
+					Neuron neuron = new Neuron();
+					this.inputLayer.add(neuron);
+				} // end if
+
+			} else if (i == 1) { // hidden layer
+
+				for (int j = 0; j < this.layers[i]; j++) {
+					Neuron neuron = new Neuron();
+					neuron.addDendrites(this.inputLayer);
+					neuron.addBiasConnection(this.bias);
+					this.hiddenLayer.add(neuron);
+				} // end for
+
+			} else if (i == 2) { // output layer
+
+				for (int j = 0; j < this.layers[i]; j++) {
+					Neuron neuron = new Neuron();
+					neuron.addDendrites(this.hiddenLayer);
+					neuron.addBiasConnection(this.bias);
+					this.outputLayer.add(neuron);
+				} // end for
+
+			} else {
+				System.err
+						.println("Error: Neural Network could not be initialized!");
+			} // end if
+
+		} // end for
+
+		int index = 0;
+		// initialize random weights
+		for (int n = 0; n < this.hiddenLayer.size(); n++) {
+			Neuron neuron = this.hiddenLayer.get(n);
+			ArrayList<Connection> connections = neuron.getDendrites();
+			for (int c = 0; c < connections.size(); c++) {
+				Connection connect = connections.get(c);
+				double weight = Double.parseDouble(hl[index]);
+				connect.setWeight(weight);
+				index++;
+			} // end for
+		} // end for
+
+		index = 0;
+		for (int n = 0; n < this.outputLayer.size(); n++) {
+			Neuron neuron = this.outputLayer.get(n);
+			ArrayList<Connection> connections = neuron.getDendrites();
+			for (int c = 0; c < connections.size(); c++) {
+				Connection connect = connections.get(c);
+				double weight = Double.parseDouble(ol[index]);
+				connect.setWeight(weight);
+				index++;
+			} // end for
+		} // end for
+
+		// reset id counters
+		Neuron.setCounter(0);
+		Connection.setCounter(0);
+
+	} // end constructor
+
 	public void setupNetwork(double e, double lr, double m, double[][] in,
 			double[][] out) {
 		this.epsilon = e;
@@ -107,6 +192,15 @@ public class NeuralNetwork {
 	public void setInput(double inputs[]) {
 		for (int i = 0; i < this.inputLayer.size(); i++)
 			this.inputLayer.get(i).setOutput(inputs[i]);
+	} // end setInput()
+
+	public void setInput(String code) {
+		for (int i = 0; i < code.length(); i++) {
+			char cBit = code.charAt(i);
+			String sBit = String.valueOf(cBit);
+			int bit = Integer.parseInt(sBit);
+			this.inputLayer.get(i).setOutput(bit);
+		} // end for
 	} // end setInput()
 
 	/**
@@ -304,77 +398,41 @@ public class NeuralNetwork {
 
 	public void saveWeights(String fileName) throws Exception {
 
-		ArrayList<Double> input = new ArrayList<Double>();
-		Iterator<Neuron> it = this.inputLayer.iterator();
-		while (it.hasNext()) {
-			Neuron next = it.next();
-			ArrayList<Connection> dendrites = next.getDendrites();
-			Iterator<Connection> it2 = dendrites.iterator();
-			while (it2.hasNext()) {
-				Connection next2 = it2.next();
-				double weight = next2.getWeight();
-				input.add(weight);
-			} // end while
-		} // end while
-
 		ArrayList<Double> hidden = new ArrayList<Double>();
-		it = this.hiddenLayer.iterator();
-		while (it.hasNext()) {
-			Neuron next = it.next();
-			ArrayList<Connection> dendrites = next.getDendrites();
-			Iterator<Connection> it2 = dendrites.iterator();
-			while (it2.hasNext()) {
-				Connection next2 = it2.next();
-				double weight = next2.getWeight();
+		for (int i = 0; i < this.hiddenLayer.size(); i++) {
+			Neuron node = this.hiddenLayer.get(i);
+			ArrayList<Connection> dendrites = node.getDendrites();
+			for (int j = 0; j < dendrites.size(); j++) {
+				Connection dendrite = dendrites.get(j);
+				double weight = dendrite.getWeight();
 				hidden.add(weight);
-			} // end while
-		} // end while
+			} // end for
+		} // end for
 
 		ArrayList<Double> output = new ArrayList<Double>();
-		it = this.outputLayer.iterator();
-		while (it.hasNext()) {
-			Neuron next = it.next();
-			ArrayList<Connection> dendrites = next.getDendrites();
-			Iterator<Connection> it2 = dendrites.iterator();
-			while (it2.hasNext()) {
-				Connection next2 = it2.next();
-				double weight = next2.getWeight();
+		for (int i = 0; i < this.outputLayer.size(); i++) {
+			Neuron node = this.outputLayer.get(i);
+			ArrayList<Connection> dendrites = node.getDendrites();
+			for (int j = 0; j < dendrites.size(); j++) {
+				Connection dendrite = dendrites.get(j);
+				double weight = dendrite.getWeight();
 				output.add(weight);
-			} // end while
-		} // end while
-
-		int numInput = this.layers[0];
-		int numHidden = this.layers[1];
-		int numOutput = this.layers[2];
-
-		Iterator<Double> it1 = input.iterator();
-		Iterator<Double> it2 = hidden.iterator();
-		Iterator<Double> it3 = output.iterator();
-
-		System.out.println("number of input layer weights: " + input.size());
-		System.out.println("number of hidden layer weights: " + hidden.size());
-		System.out.println("number of output layer weights: " + output.size());
+			} // end for
+		} // end for
 
 		String data = "";
 
-		while (it1.hasNext()) {
-			double next = it1.next();
-			data += next + " ";
-		} // end while
+		for (int i = 0; i < hidden.size(); i++) {
+			double weight = hidden.get(i);
+			data += weight + " ";
+		} // end for
 
 		data += "\n";
 
-		while (it2.hasNext()) {
-			double next = it2.next();
-			data += next + " ";
-		} // end while
-
-		data += "\n";
-
-		while (it3.hasNext()) {
-			double next = it3.next();
-			data += next + " ";
-		} // end while
+		for (int i = 0; i < output.size(); i++) {
+			double weight = output.get(i);
+			data += weight + " ";
+		} // end for
 
 		FileWriter fstream = new FileWriter(fileName);
 		BufferedWriter out = new BufferedWriter(fstream);
