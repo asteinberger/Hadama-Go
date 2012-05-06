@@ -1,4 +1,3 @@
-
 public class Connection {
 
 	private double weight = 0;
@@ -15,6 +14,14 @@ public class Connection {
 		id = counter;
 		counter++;
 	} // end constructor
+
+	@Override
+	public String toString() {
+		return "[Connection weight=" + this.weight + ", prevDeltaWeight="
+				+ this.prevDeltaWeight + ", deltaWeight=" + this.deltaWeight
+				+ ", fromNeuronID=" + this.fromNeuron.id + ", toNeuronID="
+				+ this.toNeuron.id + ", id=" + this.id + "]";
+	} // end toString()
 
 	public double getWeight() {
 		return this.weight;

@@ -1,4 +1,3 @@
-
 import java.util.*;
 
 public class Neuron {
@@ -27,7 +26,7 @@ public class Neuron {
 		} // end for
 		s += this.biasConnection.getWeight() * this.bias;
 		this.output = this.g(s);
-	} // end
+	} // end computeOutput()
 
 	double g(double x) {
 		return this.sigmoid(x);
@@ -45,6 +44,14 @@ public class Neuron {
 			this.dTable.put(neuron.id, connect);
 		} // end for
 	} // end addDendrites()
+
+	@Override
+	public String toString() {
+		return "[Neuron biasConnection=" + this.biasConnection + ", bias="
+				+ this.bias + ", output=" + this.output + ", dendrites="
+				+ this.dendrites + ", dTable=" + this.dTable + ", id="
+				+ this.id + "]";
+	} // end toString()
 
 	public Connection getConnection(int nIndex) {
 		return this.dTable.get(nIndex);

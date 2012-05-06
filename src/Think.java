@@ -1,35 +1,62 @@
-
-import java.util.Arrays;
+import java.util.*;
 
 public class Think {
 
-	public static void main(String[] args) {
-		double epsilon = 0.00000000001;
-		double learningRate = 0.9f;
-		double momentum = 0.7f;
-		double[][] trainInput = { { 1, 1 }, { 1, 0 }, { 0, 1 }, { 0, 0 } };
-		double[][] trainOutput = { { 0 }, { 1 }, { 1 }, { 0 } };
+	public static void main(String[] args) throws Exception {
+
 		NeuralNetwork network = new NeuralNetwork(2, 4, 1);
-		network.setupNetwork(epsilon, learningRate, momentum, trainInput,
-				trainOutput);
+
+		double[][] inputs = { { 1, 1 }, { 1, 0 }, { 0, 1 }, { 0, 0 } };
+		network.setInputs(inputs);
+
+		double[][] outputs = { { 0 }, { 1 }, { 1 }, { 0 } };
+		network.setExpectedOutputs(outputs);
+
+		System.out.println("Network Before Thinking:");
+		System.out.println(network);
+		System.out.println(" ");
+
 		int maxRuns = 50000;
 		double minError = 0.001;
-		network.run(maxRuns, minError);
-		System.out.println("Test 0 XOR 1");
-		double[] in = { 0, 1 };
+		network.run(maxRuns, minError, "think.txt");
+
+		System.out.println("Network After Thinking:");
+		System.out.println(network);
+		System.out.println(" ");
+
+		System.out.println("Test 0 XOR 0");
+		double[] in = { 0, 0 };
 		network.setInput(in);
 		network.feedForward();
 		double[] out = network.getOutput();
 		System.out.println(Arrays.toString(out));
 		System.out.println(" ");
-		System.out.println("Test 0 XOR 0");
+
+		System.out.println("Test 0 XOR 1");
+		in[1] = 1;
+		network.setInput(in);
+		network.feedForward();
+		out = network.getOutput();
+		System.out.println(Arrays.toString(out));
+		System.out.println(" ");
+
+		System.out.println("Test 1 XOR 0");
+		in[0] = 1;
 		in[1] = 0;
 		network.setInput(in);
 		network.feedForward();
 		out = network.getOutput();
 		System.out.println(Arrays.toString(out));
-	}
-	
-	
-	
-}
+		System.out.println(" ");
+
+		System.out.println("Test 1 XOR 1");
+		in[1] = 1;
+		network.setInput(in);
+		network.feedForward();
+		out = network.getOutput();
+		System.out.println(Arrays.toString(out));
+		System.out.println(" ");
+
+	} // end main()
+
+} // end class

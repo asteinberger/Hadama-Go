@@ -6,10 +6,8 @@
  */
 
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.IOException;
-import java.util.HashMap;
+import java.awt.event.*;
+import java.util.*;
 
 public class HadamaGo extends Thread {
 
@@ -79,7 +77,7 @@ public class HadamaGo extends Thread {
 		HadamaGo.goPanel = new GoPanel(this.goboard, HadamaGo.gamePlay);
 		HadamaGo.gListen = new GameListener(this, this.goboard, this.size,
 				HadamaGo.gamePlay);
-		this.testFrame = new Frame("Hadama Go Beta 1.1 Armadillo");
+		this.testFrame = new Frame("Hadama Go Beta 1.2 Armadillo");
 	} // end constructor
 
 	public static void main(String[] args) throws Exception {

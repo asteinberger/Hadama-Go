@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.Arrays;
+import java.util.Random;
 
 public class NetworkTrainer {
 
@@ -18,6 +19,7 @@ public class NetworkTrainer {
 
 	public NetworkTrainer(int i, int h, int o, double e, double l, double m,
 			int mr, double me) throws Exception {
+
 		this.numInput = i;
 		this.numHidden = h;
 		this.numOutput = o;
@@ -30,24 +32,51 @@ public class NetworkTrainer {
 		this.trainInput = new double[this.numLines][i];
 		this.trainOutput = new double[this.numLines][o];
 		this.network = new NeuralNetwork(i, h, o);
-		this.network.setupNetwork(e, l, m, this.trainInput, this.trainOutput);
+
 	} // end constructor
 
 	public static void main(String[] args) throws Exception {
 
-		NetworkTrainer netTrain = new NetworkTrainer(162, 40, 2, 0.0001, 0.9f,
-				0.7f, 50000, 0.0001);
+		Random random = new Random(System.currentTimeMillis());
+
+		System.out.println("Setup Network Trainer");
+
+		NetworkTrainer netTrain = new NetworkTrainer(162, 40, 2, 0.001, 0.9f,
+				0.7f, 50000, 0.001);
+
+		System.out.println("Parse Data for Network Trainer");
+
+		netTrain.parseData();
+
+		System.out.println("Setup Network Data for Network Trainer");
+
+		double[][] in = netTrain.trimData(netTrain.getTrainInput(), 1000);
+		double[][] out = netTrain.trimData(netTrain.getTrainOutput(), 1000);
+
+		netTrain.setTrainInput(in);
+		netTrain.setTrainOutput(out);
+
+		netTrain.getNetwork().setupNetwork(0.00001, 0.9f, 0.7f, in, out);
+
+		System.out.println("Train Neural Network");
+		System.out.println("Data Size: " + netTrain.getDataSize());
 
 		netTrain.trainNetwork();
 
-		double[] input = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		double[] input = new double[162];
+
+		for (int i = 0; i < 81; i++) {
+			double in1 = Math.round(random.nextDouble());
+			double in2 = Math.round(random.nextDouble());
+			while ((in1 == 1) && (in2 == 1)) {
+				in1 = Math.round(random.nextDouble());
+				in2 = Math.round(random.nextDouble());
+			} // end while
+			input[2 * i] = in1;
+			input[2 * i + 1] = in2;
+		} // end for
+
+		System.out.println(Arrays.toString(input));
 
 		double[] output = netTrain.test(input);
 
@@ -55,22 +84,35 @@ public class NetworkTrainer {
 
 	} // end main()
 
-	public void addToTrainSet(String codes) {
+	public double[][] trimData(double[][] data, int size) {
 
-		try {
-			FileWriter fstream = new FileWriter("trainData.txt", true);
-			BufferedWriter out = new BufferedWriter(fstream);
-			out.write(codes + "\n");
-			out.close();
-		} catch (IOException e) {
-			System.err.println("Error: " + e.getMessage());
-		} // end try
+		Random random = new Random(System.currentTimeMillis());
 
+		int totalSize = data.length;
+		int entrySize = data[0].length;
+
+		double[][] trim = new double[size][entrySize];
+
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < entrySize; j++) {
+				int rand = random.nextInt(totalSize);
+				trim[i][j] = data[rand][j];
+			} // end for
+		} // end for
+
+		return trim;
+
+	} // end trimData()
+
+	public void addToTrainSet(String codes) throws Exception {
+		FileWriter fstream = new FileWriter("trainData.txt", true);
+		BufferedWriter out = new BufferedWriter(fstream);
+		out.write(codes + "\n");
+		out.close();
 	} // end addToTrainSet()
 
 	public void trainNetwork() throws Exception {
-		this.parseData();
-		this.network.run(this.maxRuns, this.minError);
+		this.network.run(this.maxRuns, this.minError, "networkWeights.txt");
 	} // end trainNetwork()
 
 	public double[] test(double[] testInput) {
@@ -111,6 +153,17 @@ public class NetworkTrainer {
 
 	} // end parseData()
 
+	@Override
+	public String toString() {
+		return "[NetworkTrainer epsilon=" + epsilon + ", learningRate="
+				+ learningRate + ", momentum=" + momentum + ", maxRuns="
+				+ maxRuns + ", minError=" + minError + ", trainInput="
+				+ Arrays.toString(trainInput) + ", trainOutput="
+				+ Arrays.toString(trainOutput) + ", numInput=" + numInput
+				+ ", numHidden=" + numHidden + ", numOutput=" + numOutput
+				+ ", numLines=" + numLines + ", network=" + network + "]";
+	} // end toString()
+
 	/**
 	 * get number of lines in data file
 	 * 
@@ -135,7 +188,7 @@ public class NetworkTrainer {
 
 		return lines;
 
-	} // end
+	} // end getDataSize()
 
 	public double getEpsilon() {
 		return this.epsilon;

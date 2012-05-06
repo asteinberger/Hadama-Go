@@ -1,4 +1,4 @@
-
+import java.io.*;
 import java.util.*;
 
 public class NeuralNetwork {
@@ -18,26 +18,7 @@ public class NeuralNetwork {
 	private double output[];
 	private boolean isTrained = false;
 
-	public static void main(String[] args) {
-		NeuralNetwork network = new NeuralNetwork(2, 4, 1);
-		int maxRuns = 50000;
-		double minError = 0.001;
-		network.run(maxRuns, minError);
-	} // end main()
-
-	public void setupNetwork(double e, double lr, double m, double[][] in,
-			double[][] out) {
-		this.epsilon = e;
-		this.learningRate = lr;
-		this.momentum = m;
-		this.inputs = in;
-		this.expectedOutputs = out;
-		this.resultOutputs = new double[out.length][out[0].length];
-		for (int i = 0; i < out.length; i++)
-			Arrays.fill(this.resultOutputs[i], -1.0);
-	} // end setupNetwork
-
-	public NeuralNetwork(int input, int hidden, int output) {
+	public NeuralNetwork(int input, int hidden, int output) throws Exception {
 
 		this.layers = new int[] { input, hidden, output };
 
@@ -102,8 +83,20 @@ public class NeuralNetwork {
 
 	} // end constructor
 
+	public void setupNetwork(double e, double lr, double m, double[][] in,
+			double[][] out) {
+		this.epsilon = e;
+		this.learningRate = lr;
+		this.momentum = m;
+		this.inputs = in;
+		this.expectedOutputs = out;
+		this.resultOutputs = new double[out.length][out[0].length];
+		for (int i = 0; i < out.length; i++)
+			Arrays.fill(this.resultOutputs[i], 0.0);
+	} // end setupNetwork()
+
 	double getRandom() {
-		return (this.random.nextDouble() * 2 - 1); // [-1,1]
+		return this.random.nextDouble(); // [0,1]
 	} // end getRandom()
 
 	/**
@@ -160,9 +153,9 @@ public class NeuralNetwork {
 			double d = expectedOutput[i];
 			if ((d < 0) || (d > 1)) {
 				if (d < 0)
-					expectedOutput[i] = 0 + this.epsilon;
+					expectedOutput[i] = this.epsilon;
 				else
-					expectedOutput[i] = 1 - this.epsilon;
+					expectedOutput[i] = 1.0 - this.epsilon;
 			} // end if
 		} // end for
 
@@ -179,7 +172,7 @@ public class NeuralNetwork {
 				double ak = neuron.getOutput();
 				double ai = connect.getLeftNeuron().getOutput();
 				double desiredOutput = expectedOutput[i];
-				double partialDeriv = -ak * (1 - ak) * ai
+				double partialDeriv = -ak * (1.0 - ak) * ai
 						* (desiredOutput - ak);
 				double deltaWeight = -this.learningRate * partialDeriv;
 				double weight = connect.getWeight() + deltaWeight;
@@ -228,7 +221,8 @@ public class NeuralNetwork {
 
 	} // end backPropagate()
 
-	void run(int maxSteps, double minError) {
+	public void run(int maxSteps, double minError, String fileName)
+			throws Exception {
 
 		int i;
 		double error = 1;
@@ -252,6 +246,8 @@ public class NeuralNetwork {
 
 				this.backPropagate(this.expectedOutputs[p]);
 
+				this.saveWeights(fileName);
+
 			} // end for
 
 		} // end for
@@ -268,22 +264,19 @@ public class NeuralNetwork {
 
 	void printResult() {
 
-		for (int p = 0; p < inputs.length; p++) {
+		for (int p = 0; p < this.inputs.length; p++) {
 
 			System.out.print("INPUTS: ");
-			for (int x = 0; x < this.layers[0]; x++) {
+			for (int x = 0; x < this.layers[0]; x++)
 				System.out.print(this.inputs[p][x] + " ");
-			} // end for
 
 			System.out.print("EXPECTED: ");
-			for (int x = 0; x < this.layers[2]; x++) {
+			for (int x = 0; x < this.layers[2]; x++)
 				System.out.print(this.expectedOutputs[p][x] + " ");
-			} // end for
 
 			System.out.print("ACTUAL: ");
-			for (int x = 0; x < this.layers[2]; x++) {
+			for (int x = 0; x < this.layers[2]; x++)
 				System.out.print(this.resultOutputs[p][x] + " ");
-			} // end for
 
 			System.out.println();
 
@@ -292,6 +285,119 @@ public class NeuralNetwork {
 		System.out.println();
 
 	} // end printResult()
+
+	@Override
+	public String toString() {
+		return "[NeuralNetwork \ninputLayer=" + this.inputLayer
+				+ ", \nhiddenLayer=" + this.hiddenLayer + ", \noutputLayer="
+				+ this.outputLayer + ", \nbias=" + this.bias + ", layers="
+				+ Arrays.toString(this.layers) + ", epsilon=" + this.epsilon
+				+ ", learningRate=" + this.learningRate + ", momentum="
+				+ this.momentum + ", \ninputs="
+				+ Arrays.deepToString(this.inputs) + ", \nexpectedOutputs="
+				+ Arrays.deepToString(this.expectedOutputs)
+				+ ", \nresultOutputs="
+				+ Arrays.deepToString(this.resultOutputs) + ", \noutput="
+				+ Arrays.toString(this.output) + ", \nisTrained="
+				+ this.isTrained + "]";
+	} // end toString()
+
+	public void saveWeights(String fileName) throws Exception {
+
+		ArrayList<Double> input = new ArrayList<Double>();
+		Iterator<Neuron> it = this.inputLayer.iterator();
+		while (it.hasNext()) {
+			Neuron next = it.next();
+			ArrayList<Connection> dendrites = next.getDendrites();
+			Iterator<Connection> it2 = dendrites.iterator();
+			while (it2.hasNext()) {
+				Connection next2 = it2.next();
+				double weight = next2.getWeight();
+				input.add(weight);
+			} // end while
+		} // end while
+
+		ArrayList<Double> hidden = new ArrayList<Double>();
+		it = this.hiddenLayer.iterator();
+		while (it.hasNext()) {
+			Neuron next = it.next();
+			ArrayList<Connection> dendrites = next.getDendrites();
+			Iterator<Connection> it2 = dendrites.iterator();
+			while (it2.hasNext()) {
+				Connection next2 = it2.next();
+				double weight = next2.getWeight();
+				hidden.add(weight);
+			} // end while
+		} // end while
+
+		ArrayList<Double> output = new ArrayList<Double>();
+		it = this.outputLayer.iterator();
+		while (it.hasNext()) {
+			Neuron next = it.next();
+			ArrayList<Connection> dendrites = next.getDendrites();
+			Iterator<Connection> it2 = dendrites.iterator();
+			while (it2.hasNext()) {
+				Connection next2 = it2.next();
+				double weight = next2.getWeight();
+				output.add(weight);
+			} // end while
+		} // end while
+
+		int numInput = this.layers[0];
+		int numHidden = this.layers[1];
+		int numOutput = this.layers[2];
+
+		Iterator<Double> it1 = input.iterator();
+		Iterator<Double> it2 = hidden.iterator();
+		Iterator<Double> it3 = output.iterator();
+
+		System.out.println("number of input layer weights: " + input.size());
+		System.out.println("number of hidden layer weights: " + hidden.size());
+		System.out.println("number of output layer weights: " + output.size());
+
+		String data = "";
+
+		while (it1.hasNext()) {
+			double next = it1.next();
+			data += next + " ";
+		} // end while
+
+		data += "\n";
+
+		while (it2.hasNext()) {
+			double next = it2.next();
+			data += next + " ";
+		} // end while
+
+		data += "\n";
+
+		while (it3.hasNext()) {
+			double next = it3.next();
+			data += next + " ";
+		} // end while
+
+		FileWriter fstream = new FileWriter(fileName);
+		BufferedWriter out = new BufferedWriter(fstream);
+		out.write(data + "\n");
+		out.close();
+
+	} // end saveWeights()
+
+	public ArrayList<Double> layerWeights(ArrayList<Neuron> layer) {
+		ArrayList<Double> weights = new ArrayList<Double>();
+		Iterator<Neuron> it = this.inputLayer.iterator();
+		while (it.hasNext()) {
+			Neuron next = it.next();
+			ArrayList<Connection> dendrites = next.getDendrites();
+			Iterator<Connection> it2 = dendrites.iterator();
+			while (it2.hasNext()) {
+				Connection next2 = it2.next();
+				double weight = next2.getWeight();
+				weights.add(weight);
+			} // end while
+		} // end while
+		return weights;
+	} // end printLayers()
 
 	public ArrayList<Neuron> getInputLayer() {
 		return this.inputLayer;

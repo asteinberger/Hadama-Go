@@ -51,11 +51,19 @@ public class GameListener implements KeyListener, ActionListener,
 	// Menu Option Events
 	public void actionPerformed(ActionEvent ae) {
 		String s = ae.getActionCommand();
-		if (s.equals("pass turn"))
-			this.pass();
-		else if (s.equals("forfeit"))
-			this.forfeit();
-		else if (s.equals("undo move"))
+		if (s.equals("pass turn")) {
+			try {
+				this.pass();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			} // end try
+		} else if (s.equals("forfeit")) {
+			try {
+				this.forfeit();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} // end try
+		} else if (s.equals("undo move"))
 			this.undoMove();
 		else if (s.equals("new game"))
 			this.newGame();
@@ -72,10 +80,14 @@ public class GameListener implements KeyListener, ActionListener,
 	@Override
 	public void keyTyped(KeyEvent arg0) {
 		char ch = arg0.getKeyChar();
-		this.movePiece(ch);
+		try {
+			this.movePiece(ch);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} // end try
 	} // end keyTyped()
 
-	private void movePiece(char ch) {
+	private void movePiece(char ch) throws Exception {
 		if (!this.gameOver) {
 			switch (ch) {
 			case 'A':
@@ -183,7 +195,7 @@ public class GameListener implements KeyListener, ActionListener,
 		// + Integer.toString(arg0.getY()));
 	} // end mouseMoved()
 
-	private void forfeit() {
+	private void forfeit() throws Exception {
 		this.gamePlay.forfeit(this.color);
 		this.gameOver = true;
 		this.gamePlay.setGameOver(this.gameOver);
@@ -205,7 +217,7 @@ public class GameListener implements KeyListener, ActionListener,
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
 	} // end undoMove()
 
-	private void placePiece() {
+	private void placePiece() throws Exception {
 		this.gamePlay.placePiece(this.goBoard, this.color);
 		this.gameOver = this.gamePlay.isGameOver();
 		this.color = this.gamePlay.getPlayer();
@@ -216,19 +228,24 @@ public class GameListener implements KeyListener, ActionListener,
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
 	} // end placePiece()
 
-	private void pass() {
+	private void pass() throws Exception {
+
 		if (this.gamePlay.getJustPassed()) {
+
 			this.gameOver = true;
 			this.gamePlay.setGameOver(this.gameOver);
 			this.gamePlay.gameOver();
+
 		} else {
 
 			Stone ns = new Stone();
 			ns.setColor(this.color);
 			ArrayList<Chain> removedChains = new ArrayList<Chain>();
+
 			Move newMove = new Move(ns, removedChains, null, true,
 					this.goBoard.getLastTiziPosition(),
 					this.goBoard.getLastTiziNum());
+
 			this.gamePlay.getGoboard().getMoves().push(newMove);
 			this.togglePlayer();
 			this.gamePlay.setJustPassed(true);
@@ -238,6 +255,7 @@ public class GameListener implements KeyListener, ActionListener,
 		this.gamePlay.setPlayer(this.color);
 		HadamaGo.getGoPanel().setColor(this.color);
 		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
+
 	} // end pass()
 
 	private void togglePlayer() {

@@ -1,11 +1,20 @@
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Stack;
 import java.util.TreeSet;
 
 /**
  * GamePlay - place stones on board for both human and machine players.
+ * 
+ * Have player play human vs neural network.
+ * 
+ * For human vs neural network, don't train, get weights instead.
+ * 
+ * Also, get all legal moves, make each legal move, get state value, undo move.
+ * 
+ * Choose legal move with best state value.
  * 
  * @author Haoran Ma <mahaoran1020@gmail.com>, Adam Steinberger
  *         <steinz08@gmail.com>
@@ -29,7 +38,9 @@ public class GamePlay {
 	private int LastTiziNum;
 	private int alphaBetaDepth = 2;
 	private AlphaBeta ab = new AlphaBeta();
-	private NetworkTrainer netTrain;
+	private NetworkTrainer netTrain = new NetworkTrainer(162, 40, 2, 0.0001,
+			0.9f, 0.7f, 50000, 0.0001);
+	private NeuralNetwork network;
 
 	// private boolean huiti = false;
 
@@ -43,9 +54,7 @@ public class GamePlay {
 		this.horizontals = new int[this.size];
 		this.verticals = new int[this.size];
 		this.goboard = new Board(this.size);
-		this.netTrain = new NetworkTrainer(162, 40, 2, 0.0001, 0.9f, 0.7f,
-				50000, 0.0001);
-		this.netTrain.trainNetwork();
+		this.network = new NeuralNetwork(162, 40, 2);
 	} // end constructor
 
 	/**
@@ -71,9 +80,11 @@ public class GamePlay {
 	 *            color
 	 * @param g
 	 *            game
+	 * 
+	 * @throws Exception
 	 */
 	public GamePlay(String m, int s, Point l, Point p, Point i, int[] h,
-			int[] v, Board g, int c) {
+			int[] v, Board g, int c) throws Exception {
 		this.mode = m;
 		this.size = s;
 		this.location = l;
@@ -83,10 +94,11 @@ public class GamePlay {
 		this.verticals = v;
 		this.goboard = g;
 		this.color = c;
+		this.network = new NeuralNetwork(162, 40, 2);
 	} // end constructor
 
 	// c = player stone color
-	public void placePiece(Board b, int c) {
+	public void placePiece(Board b, int c) throws Exception {
 
 		this.color = c;
 		Point p = new Point(this.location.x, size - this.location.y - 1);
@@ -140,7 +152,7 @@ public class GamePlay {
 					this.goboard.getMoves().push(newMove);
 				}
 			}
-		}// end mode HvH
+		} // end mode HvH
 
 		else if (this.mode.equals("HvC")) {
 
@@ -202,11 +214,19 @@ public class GamePlay {
 				LastMovePostion = p;
 				this.goboard.getMoves().push(newMove);
 
-				for (int i = 0; i < 20; i++) {
+				for (int i = 0; i < 100; i++) {
 
-					// alpha-beta player turn, that is white
-					Point pAI = ab.AlphaBetaSearch(this.color, this,
-							this.alphaBetaDepth);
+					Random random = new Random(System.currentTimeMillis());
+					ArrayList<Point> legalmoves = this
+							.findLegalMoves(this.color);
+
+					if (legalmoves.size() <= 0) {
+						this.togglePlayer(this.color);
+						continue;
+					} // end if
+
+					int index = random.nextInt(legalmoves.size());
+					Point pAI = legalmoves.get(index);
 					Stone stAI = new Stone(this.color, pAI);
 					ArrayList<Chain> removedChainsAI = this.goboard
 							.addStone(stAI);
@@ -226,16 +246,61 @@ public class GamePlay {
 				} // end for
 
 				this.gameOver();
+				this.newGame();
+
+				this.placePiece(this.goboard, this.color);
 
 			} // end if
 
-		}
+		} // end if
 
 		else if (this.mode.equals("RLvH") || this.mode.equals("HvRL")) {
 
 		}
 
 	}// end placePiece()
+
+	/**
+	 * We find all legalmoves for both players
+	 * 
+	 * @param color
+	 * @return ArrayList<Point>
+	 */
+	private ArrayList<Point> findLegalMoves(int color) {
+
+		int size = this.goboard.getSize();
+		if (color == 0) {
+			ArrayList<Point> illegalMovesBlack = this.goboard
+					.getIllegalMovesforBlack();
+			ArrayList<Point> legalMovesBlack = new ArrayList<Point>();
+
+			for (int row = 0; row < size; row++) {
+				for (int col = 0; col < size; col++) {
+					Point p = new Point(col, row);
+					if (!illegalMovesBlack.contains(p))
+						legalMovesBlack.add(p);
+				}
+			}
+			return legalMovesBlack;
+
+		} else {
+
+			ArrayList<Point> illegalMovesWhite = this.goboard
+					.getIllegalMovesforWhite();
+			ArrayList<Point> legalMovesWhite = new ArrayList<Point>();
+			for (int row = 0; row < size; row++) {
+				for (int col = 0; col < size; col++) {
+					Point p = new Point(col, row);
+					if (!illegalMovesWhite.contains(p)) {
+						legalMovesWhite.add(p);
+					}
+				}
+			}
+
+			return legalMovesWhite;
+		}
+
+	} // end findLegalMoves()
 
 	public void placePieceAlphaBeta(Board b, int c) {
 		this.color = c;
@@ -484,7 +549,7 @@ public class GamePlay {
 		this.goboard.illegalMoveDetector();
 	} // end undoMove()
 
-	public void forfeit(int p) {
+	public void forfeit(int p) throws Exception {
 		if (p == 0)
 			System.out.println("Black Player Forfeits!");
 		else
@@ -492,13 +557,7 @@ public class GamePlay {
 		this.gameOver();
 	} // end forfeit()
 
-	public void gameOver() {
-
-		if (this.color == 0) {
-			System.out.println("Black Playerer Ended Game!");
-		} else {
-			System.out.println("White Player Ended Game!");
-		} // end if
+	public void gameOver() throws Exception {
 
 		String codes = this.goboard.getCodes();
 
@@ -601,6 +660,14 @@ public class GamePlay {
 
 	public void setNetTrain(NetworkTrainer netTrain) {
 		this.netTrain = netTrain;
+	}
+
+	public NeuralNetwork getNetwork() {
+		return network;
+	}
+
+	public void setNetwork(NeuralNetwork network) {
+		this.network = network;
 	}
 
 } // end class
