@@ -215,6 +215,8 @@ public class GamePlay {
 				LastMovePostion = p;
 				this.goboard.getMoves().push(newMove);
 
+				this.addTrainData();
+
 				for (int i = 0; i < 100; i++) {
 
 					Random random = new Random(System.currentTimeMillis());
@@ -244,6 +246,8 @@ public class GamePlay {
 					LastMovePostion = pAI;
 					this.goboard.getMoves().push(newMoveAI);
 
+					this.addTrainData();
+
 				} // end for
 
 				this.gameOver();
@@ -256,6 +260,7 @@ public class GamePlay {
 		} // end if
 
 		else if (this.mode.equals("RLvH") || this.mode.equals("HvRL")) {
+
 			// Human Move first, that is Black
 			if (!this.goboard.getIllegalMovesforBlack().contains(p)) {
 
@@ -275,6 +280,8 @@ public class GamePlay {
 				LastMovePostion = p;
 				this.goboard.getMoves().push(newMove);
 
+				this.addTrainData();
+
 				// alpha-beta player turn, that is white
 				Point pAI = ql.iterateValue(this.color, this);
 				Stone stAI = new Stone(this.color, pAI);
@@ -291,6 +298,8 @@ public class GamePlay {
 				this.LastTiziPosition = this.goboard.getLastTiziPosition();
 				LastMovePostion = pAI;
 				this.goboard.getMoves().push(newMoveAI);
+
+				this.addTrainData();
 			}
 		}
 
@@ -593,7 +602,7 @@ public class GamePlay {
 		this.gameOver();
 	} // end forfeit()
 
-	public void gameOver() throws Exception {
+	public void addTrainData() throws Exception {
 
 		String codes = this.goboard.getCodes();
 
@@ -610,6 +619,13 @@ public class GamePlay {
 		codes += " " + code;
 
 		this.netTrain.addToTrainSet(codes);
+
+	} // end
+
+	public void gameOver() throws Exception {
+
+		System.out.println("Game Over!");
+		this.addTrainData();
 
 	} // end forfeit()
 

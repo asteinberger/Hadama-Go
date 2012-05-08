@@ -19,7 +19,7 @@ public class HadamaGo extends Thread {
 	/**
 	 * Hard coded game mode calls for a human versus human player game.
 	 */
-	private static String gameMode = "HvRL";
+	private static String gameMode = "HvC";
 
 	/**
 	 * The window frame dimensions are hard coded to 694 by 722 pixels.
@@ -77,7 +77,7 @@ public class HadamaGo extends Thread {
 		HadamaGo.goPanel = new GoPanel(this.goboard, HadamaGo.gamePlay);
 		HadamaGo.gListen = new GameListener(this, this.goboard, this.size,
 				HadamaGo.gamePlay);
-		this.testFrame = new Frame("Hadama Go Beta 2.0 Baiji");
+		this.testFrame = new Frame("Hadama Go Beta 2.1 Baiji");
 	} // end constructor
 
 	public static void main(String[] args) throws Exception {

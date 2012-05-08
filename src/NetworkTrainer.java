@@ -111,7 +111,7 @@ public class NetworkTrainer {
 	} // end trimData()
 
 	public void addToTrainSet(String codes) throws Exception {
-		FileWriter fstream = new FileWriter("trainData.txt", true);
+		FileWriter fstream = new FileWriter("trainData2.txt", true);
 		BufferedWriter out = new BufferedWriter(fstream);
 		out.write(codes + "\n");
 		out.close();
@@ -130,7 +130,7 @@ public class NetworkTrainer {
 
 	public void parseData() throws Exception {
 
-		FileInputStream fstream = new FileInputStream("trainData.txt");
+		FileInputStream fstream = new FileInputStream("trainData2.txt");
 		DataInputStream in = new DataInputStream(fstream);
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
@@ -178,7 +178,7 @@ public class NetworkTrainer {
 	 */
 	public int getDataSize() throws Exception {
 
-		FileInputStream fstream = new FileInputStream("trainData.txt");
+		FileInputStream fstream = new FileInputStream("trainData2.txt");
 		DataInputStream in = new DataInputStream(fstream);
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
