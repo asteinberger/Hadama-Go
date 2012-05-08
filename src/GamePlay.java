@@ -38,7 +38,7 @@ public class GamePlay {
 	private int LastTiziNum;
 	private int alphaBetaDepth = 2;
 	private AlphaBeta ab = new AlphaBeta();
-	private QLearning ql = new QLearning(0.001, 0.01);
+	private QLearning ql = new QLearning(0.001, 0.01, 0.1);
 	private NetworkTrainer netTrain = new NetworkTrainer(162, 40, 2, 0.0001,
 			0.9f, 0.7f, 50000, 0.0001);
 	private NeuralNetwork network;

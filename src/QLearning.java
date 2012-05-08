@@ -1,17 +1,33 @@
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 
 public class QLearning {
 
+	private final Random random = new Random(System.currentTimeMillis());
+	private double epsilon = 0.1;
 	private double qPrev = 0.0;
 	private double learnRate = 0.001;
 	private double discountFactor = 0.01;
 
-	public QLearning(double lr, double df) {
+	public QLearning(double lr, double df, double ep) {
 		this.learnRate = lr;
 		this.discountFactor = df;
+		this.epsilon = ep;
 	} // end constructor
+
+	public boolean epsilonGreedy() {
+		boolean[] select = { true, false };
+		double[] weight = { this.epsilon, 1.0 - this.epsilon };
+		double rand = this.random.nextDouble();
+		double s = 0; // temp cumulative sum
+		int i = 0;
+		while ((s += weight[i]) < rand)
+			i++;
+		boolean isRandom = select[i];
+		return isRandom;
+	} // end epsilonGreedy()
 
 	/**
 	 * We find all legalmoves for both players
@@ -79,6 +95,10 @@ public class QLearning {
 		Point bestMove = moves.get(0);
 		double qMax = Double.NEGATIVE_INFINITY;
 
+		ArrayList<ArrayList<Double>> outMaxes = new ArrayList<ArrayList<Double>>();
+		ArrayList<Point> bestMoves = new ArrayList<Point>();
+		ArrayList<Double> qMaxes = new ArrayList<Double>();
+
 		for (int i = 0; i < moves.size(); i++) {
 
 			Point m = moves.get(i);
@@ -96,13 +116,71 @@ public class QLearning {
 			double qNext = this.qValue(player, outNext);
 
 			if (qNext > qMax) {
+
 				qMax = qNext;
-				for (int j = 0; j < outMax.length; j++)
+				qMaxes.clear();
+				qMaxes.add(qNext);
+
+				outMaxes.clear();
+				ArrayList<Double> maxes = new ArrayList<Double>();
+				for (int j = 0; j < outMax.length; j++) {
 					outMax[j] = outNext[j];
+					maxes.add(outNext[j]);
+				} // end for
+				outMaxes.add(maxes);
+
 				bestMove = new Point(move);
+				bestMoves.clear();
+				bestMoves.add(bestMove);
+
+			} else if (qNext == qMax) {
+
+				qMax = qNext;
+				qMaxes.add(qNext);
+
+				ArrayList<Double> maxes = new ArrayList<Double>();
+				for (int j = 0; j < outMax.length; j++) {
+					outMax[j] = outNext[j];
+					maxes.add(outNext[j]);
+				} // end for
+				outMaxes.add(maxes);
+
+				bestMove = new Point(move);
+				bestMoves.add(bestMove);
+
 			} // end if
 
 		} // end for
+
+		if (qMaxes.size() > 1) {
+
+			int rand = this.random.nextInt(qMaxes.size());
+			ArrayList<Double> mo = outMaxes.get(rand);
+			for (int i = 0; i < outMax.length; i++)
+				outMax[i] = mo.get(i);
+			bestMove = bestMoves.get(rand);
+			qMax = qMaxes.get(rand);
+
+		} // end if
+
+		boolean isRandom = this.epsilonGreedy();
+		if (isRandom) {
+
+			int rand = this.random.nextInt(moves.size());
+			bestMove = moves.get(rand);
+			String moveCode = new String(code);
+			int start = (18 * bestMove.x) + (2 * bestMove.y);
+
+			String before = moveCode.substring(0, start);
+			String after = moveCode.substring(start + 2);
+
+			moveCode = before.concat(playerCode).concat(after);
+
+			network.setInput(moveCode);
+			double[] randOut = network.getOutput();
+			qMax = this.qValue(player, randOut);
+
+		} // end if
 
 		double qUpdate = q + this.learnRate
 				* (this.qPrev + (this.discountFactor * qMax) - q);
@@ -177,6 +255,18 @@ public class QLearning {
 
 	public void setDiscountFactor(double discountFactor) {
 		this.discountFactor = discountFactor;
+	}
+
+	public double getEpsilon() {
+		return epsilon;
+	}
+
+	public void setEpsilon(double epsilon) {
+		this.epsilon = epsilon;
+	}
+
+	public Random getRandom() {
+		return random;
 	}
 
 } // end class
