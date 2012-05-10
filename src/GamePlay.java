@@ -40,7 +40,7 @@ public class GamePlay {
 	private AlphaBeta ab = new AlphaBeta();
 	private QLearning ql = new QLearning(0.001, 0.01, 0.1);
 	private NetworkTrainer netTrain = new NetworkTrainer(162, 40, 2, 0.0001,
-			0.9f, 0.7f, 50000, 0.0001);
+			0.9f, 0.7f, 50000, 0.0001, 2500);
 	private NeuralNetwork network;
 
 	// private boolean huiti = false;
@@ -104,6 +104,19 @@ public class GamePlay {
 		this.color = c;
 		Point p = new Point(this.location.x, size - this.location.y - 1);
 		this.goboard = b;
+
+		ArrayList<Point> lm = this.ql.findLegalMoves(this.color, this);
+		int numAvailableMoves = lm.size();
+		double[] scores = this.goboard.getScores();
+
+		if (((c == 0) && (scores[2] < 0) && (numAvailableMoves <= 15))
+				|| ((c == 1) && (scores[2] > 0) && (numAvailableMoves <= 15))) {
+			this.forfeit(this.color);
+			if (this.mode.equals("Train")) {
+				this.newGame();
+				this.placePiece(this.goboard, this.color);
+			} // end if
+		} // end if
 
 		if (this.mode.equals("HvH")) {
 			if (c == 0) {
@@ -283,23 +296,27 @@ public class GamePlay {
 				this.addTrainData();
 
 				// alpha-beta player turn, that is white
-				Point pAI = ql.iterateValue(this.color, this);
-				Stone stAI = new Stone(this.color, pAI);
-				ArrayList<Chain> removedChainsAI = this.goboard.addStone(stAI);
-				this.justPassed = false;
-				// change player color
-				this.togglePlayer(this.color);
-				// store for undo move
-				Stone newstAI = (Stone) stAI.clone();
-				Move newMoveAI = new Move(newstAI, removedChainsAI,
-						this.LastMovePostion, false, this.LastTiziPosition,
-						this.LastTiziNum);
-				this.LastTiziNum = this.goboard.getLastTiziNum();
-				this.LastTiziPosition = this.goboard.getLastTiziPosition();
-				LastMovePostion = pAI;
-				this.goboard.getMoves().push(newMoveAI);
+				Point pAI = this.ql.iterateValue(this.color, this);
+				if ((pAI.x != Integer.MAX_VALUE)
+						&& (pAI.y != Integer.MAX_VALUE)) {
+					Stone stAI = new Stone(this.color, pAI);
+					ArrayList<Chain> removedChainsAI = this.goboard
+							.addStone(stAI);
+					this.justPassed = false;
+					// change player color
+					this.togglePlayer(this.color);
+					// store for undo move
+					Stone newstAI = (Stone) stAI.clone();
+					Move newMoveAI = new Move(newstAI, removedChainsAI,
+							this.LastMovePostion, false, this.LastTiziPosition,
+							this.LastTiziNum);
+					this.LastTiziNum = this.goboard.getLastTiziNum();
+					this.LastTiziPosition = this.goboard.getLastTiziPosition();
+					LastMovePostion = pAI;
+					this.goboard.getMoves().push(newMoveAI);
+					this.addTrainData();
+				} // end if
 
-				this.addTrainData();
 			}
 		}
 
@@ -347,10 +364,23 @@ public class GamePlay {
 
 	} // end findLegalMoves()
 
-	public void placePieceAlphaBeta(Board b, int c) {
+	public void placePieceAlphaBeta(Board b, int c) throws Exception {
 		this.color = c;
 		Point p = new Point(this.location.x, size - this.location.y - 1);
 		this.goboard = b;
+
+		ArrayList<Point> lm = this.ql.findLegalMoves(this.color, this);
+		int numAvailableMoves = lm.size();
+		double[] scores = this.goboard.getScores();
+
+		if (((c == 0) && (scores[2] < 0) && (numAvailableMoves <= 15))
+				|| ((c == 1) && (scores[2] > 0) && (numAvailableMoves <= 15))) {
+			this.forfeit(this.color);
+			if (this.mode.equals("Train")) {
+				this.newGame();
+				this.placePiece(this.goboard, this.color);
+			} // end if
+		} // end if
 
 		if (c == 0) {
 			if (!this.goboard.getIllegalMovesforBlack().contains(p)) {

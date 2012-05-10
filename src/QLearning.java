@@ -77,6 +77,10 @@ public class QLearning {
 		String code = game.getGoboard().getCodes();
 		ArrayList<Point> moves = this.findLegalMoves(player, game);
 
+		if (moves.size() == 0) {
+			return new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		} // end Point
+
 		NeuralNetwork network = new NeuralNetwork(162, 40, 2,
 				"networkWeights.txt");
 

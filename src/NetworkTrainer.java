@@ -4,6 +4,7 @@ import java.util.Random;
 
 public class NetworkTrainer {
 
+	private Random random = new Random(System.currentTimeMillis());
 	private double epsilon;
 	private double learningRate;
 	private double momentum;
@@ -11,14 +12,18 @@ public class NetworkTrainer {
 	private double minError;
 	private double[][] trainInput;
 	private double[][] trainOutput;
+	private double[][] totalInput;
+	private double[][] totalOutput;
 	private int numInput;
 	private int numHidden;
 	private int numOutput;
 	private int numLines;
 	private NeuralNetwork network;
+	private int sampleSize = 5000;
+	private double probCV = 0.001;
 
 	public NetworkTrainer(int i, int h, int o, double e, double l, double m,
-			int mr, double me) throws Exception {
+			int mr, double me, int ss) throws Exception {
 
 		this.numInput = i;
 		this.numHidden = h;
@@ -29,20 +34,21 @@ public class NetworkTrainer {
 		this.maxRuns = mr;
 		this.minError = me;
 		this.numLines = this.getDataSize();
-		this.trainInput = new double[this.numLines][i];
-		this.trainOutput = new double[this.numLines][o];
+		this.sampleSize = ss;
+		this.trainInput = new double[ss][i];
+		this.trainOutput = new double[ss][o];
+		this.totalInput = new double[this.numLines][i];
+		this.totalOutput = new double[this.numLines][o];
 		this.network = new NeuralNetwork(i, h, o);
 
 	} // end constructor
 
 	public static void main(String[] args) throws Exception {
 
-		Random random = new Random(System.currentTimeMillis());
-
 		System.out.println("Setup Network Trainer");
 
 		NetworkTrainer netTrain = new NetworkTrainer(162, 40, 2, 0.001, 0.9f,
-				0.7f, 50000, 0.001);
+				0.7f, 50000, 0.001, 2500);
 
 		NeuralNetwork network = new NeuralNetwork(162, 40, 2,
 				"networkWeights.txt");
@@ -56,8 +62,10 @@ public class NetworkTrainer {
 
 		System.out.println("Setup Network Data for Network Trainer");
 
-		double[][] in = netTrain.trimData(netTrain.getTrainInput(), 2500);
-		double[][] out = netTrain.trimData(netTrain.getTrainOutput(), 2500);
+		double[][] in = netTrain.trimData(netTrain.getTotalInput(),
+				netTrain.getSampleSize());
+		double[][] out = netTrain.trimData(netTrain.getTotalOutput(),
+				netTrain.getSampleSize());
 
 		netTrain.setTrainInput(in);
 		netTrain.setTrainOutput(out);
@@ -72,11 +80,11 @@ public class NetworkTrainer {
 		double[] input = new double[162];
 
 		for (int i = 0; i < 81; i++) {
-			double in1 = Math.round(random.nextDouble());
-			double in2 = Math.round(random.nextDouble());
+			double in1 = Math.round(netTrain.random.nextDouble());
+			double in2 = Math.round(netTrain.random.nextDouble());
 			while ((in1 == 1) && (in2 == 1)) {
-				in1 = Math.round(random.nextDouble());
-				in2 = Math.round(random.nextDouble());
+				in1 = Math.round(netTrain.random.nextDouble());
+				in2 = Math.round(netTrain.random.nextDouble());
 			} // end while
 			input[2 * i] = in1;
 			input[2 * i + 1] = in2;
@@ -90,9 +98,14 @@ public class NetworkTrainer {
 
 	} // end main()
 
-	public double[][] trimData(double[][] data, int size) {
+	public void crossValidate() {
+		this.trainInput = this.trimData(this.totalInput, this.sampleSize);
+		this.trainOutput = this.trimData(this.totalOutput, this.sampleSize);
+		this.network.setupNetwork(this.epsilon, this.learningRate,
+				this.momentum, this.trainInput, this.trainOutput);
+	} // end crossValidate()
 
-		Random random = new Random(System.currentTimeMillis());
+	public double[][] trimData(double[][] data, int size) {
 
 		int totalSize = data.length;
 		int entrySize = data[0].length;
@@ -101,7 +114,7 @@ public class NetworkTrainer {
 
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < entrySize; j++) {
-				int rand = random.nextInt(totalSize);
+				int rand = this.random.nextInt(totalSize);
 				trim[i][j] = data[rand][j];
 			} // end for
 		} // end for
@@ -111,7 +124,7 @@ public class NetworkTrainer {
 	} // end trimData()
 
 	public void addToTrainSet(String codes) throws Exception {
-		FileWriter fstream = new FileWriter("trainData2.txt", true);
+		FileWriter fstream = new FileWriter("trainData.txt", true);
 		BufferedWriter out = new BufferedWriter(fstream);
 		out.write(codes + "\n");
 		out.close();
@@ -128,9 +141,21 @@ public class NetworkTrainer {
 		return out;
 	} // end test()
 
+	public boolean checkCrossValid() {
+		boolean[] select = { true, false };
+		double[] weight = { this.probCV, 1.0 - this.probCV };
+		double rand = this.random.nextDouble();
+		double s = 0; // temp cumulative sum
+		int i = 0;
+		while ((s += weight[i]) < rand)
+			i++;
+		boolean isRandom = select[i];
+		return isRandom;
+	} // end checkCrossValid()
+
 	public void parseData() throws Exception {
 
-		FileInputStream fstream = new FileInputStream("trainData2.txt");
+		FileInputStream fstream = new FileInputStream("trainData.txt");
 		DataInputStream in = new DataInputStream(fstream);
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
@@ -143,12 +168,12 @@ public class NetworkTrainer {
 
 			for (int i = 0; i < data[0].length(); i++) {
 				String inputData = Character.toString(data[0].charAt(i));
-				this.trainInput[lineNum][i] = Integer.parseInt(inputData);
+				this.totalInput[lineNum][i] = Integer.parseInt(inputData);
 			} // end for
 
 			for (int i = 0; i < data[1].length(); i++) {
 				String outputData = Character.toString(data[1].charAt(i));
-				this.trainOutput[lineNum][i] = Integer.parseInt(outputData);
+				this.totalOutput[lineNum][i] = Integer.parseInt(outputData);
 			} // end for
 
 			lineNum++;
@@ -178,7 +203,7 @@ public class NetworkTrainer {
 	 */
 	public int getDataSize() throws Exception {
 
-		FileInputStream fstream = new FileInputStream("trainData2.txt");
+		FileInputStream fstream = new FileInputStream("trainData.txt");
 		DataInputStream in = new DataInputStream(fstream);
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
@@ -291,5 +316,45 @@ public class NetworkTrainer {
 	public void setNetwork(NeuralNetwork n) {
 		this.network = n;
 	} // end setNetwork()
+
+	public double[][] getTotalInput() {
+		return totalInput;
+	}
+
+	public void setTotalInput(double[][] totalInput) {
+		this.totalInput = totalInput;
+	}
+
+	public double[][] getTotalOutput() {
+		return totalOutput;
+	}
+
+	public void setTotalOutput(double[][] totalOutput) {
+		this.totalOutput = totalOutput;
+	}
+
+	public int getSampleSize() {
+		return sampleSize;
+	}
+
+	public void setSampleSize(int sampleSize) {
+		this.sampleSize = sampleSize;
+	}
+
+	public Random getRandom() {
+		return random;
+	}
+
+	public void setRandom(Random random) {
+		this.random = random;
+	}
+
+	public double getProbCV() {
+		return probCV;
+	}
+
+	public void setProbCV(double probCV) {
+		this.probCV = probCV;
+	}
 
 } // end class

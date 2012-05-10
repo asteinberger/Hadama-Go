@@ -104,8 +104,9 @@ public class Stone implements Comparable<Stone>, Cloneable {
 		int y = this.location.y;
 		int size = b.length;
 
-		// { top, right, bottom, left, top-left, top-right, bottom-right, bottom-left, center }
-		Wei[] result = { null, null, null, null, null, null, null, null, null};
+		// { top, right, bottom, left, top-left, top-right, bottom-right,
+		// bottom-left, center }
+		Wei[] result = { null, null, null, null, null, null, null, null, null };
 
 		// top
 		if ((y < size - 1) && (b[x][y + 1] != null))
@@ -132,7 +133,7 @@ public class Stone implements Comparable<Stone>, Cloneable {
 		// bottom-left
 		if ((y > 0) && (x > 0) && (b[x - 1][y - 1] != null))
 			result[7] = b[x - 1][y - 1].getWei();
-		
+
 		// center
 		if ((b[x][y] != null))
 			result[8] = b[x][y].getWei();
@@ -150,7 +151,7 @@ public class Stone implements Comparable<Stone>, Cloneable {
 
 		// { top, right, bottom, left, top-left, top-right, bottom-right,center
 		// bottom-left }
-		Chain[] result = { null, null, null, null, null, null, null, null, null};
+		Chain[] result = { null, null, null, null, null, null, null, null, null };
 
 		// top
 		if ((y < size - 1) && (b[x][y + 1] != null))
@@ -455,10 +456,11 @@ public class Stone implements Comparable<Stone>, Cloneable {
 
 	@Override
 	public String toString() {
-		return "Stone [Color=" + this.color + ", value=" + this.value
+		return "[Stone Color=" + this.color + ", value=" + this.value
 				+ ", Belongto=" + this.belongto + ", isYan=" + this.isYan
 				+ ", isZhenYan=" + this.isZhenYan + ", isJiaYan="
-				+ this.isJiaYan + ", location= (" + this.location.x + ","+ this.location.y + ")]";
+				+ this.isJiaYan + ", location= (" + this.location.x + ","
+				+ this.location.y + ")]";
 	} // end toString()
 
 } // end class

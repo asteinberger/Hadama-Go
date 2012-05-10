@@ -77,7 +77,7 @@ public class HadamaGo extends Thread {
 		HadamaGo.goPanel = new GoPanel(this.goboard, HadamaGo.gamePlay);
 		HadamaGo.gListen = new GameListener(this, this.goboard, this.size,
 				HadamaGo.gamePlay);
-		this.testFrame = new Frame("Hadama Go Beta 2.2 Baiji");
+		this.testFrame = new Frame("Hadama Go Beta 2.5 Baiji");
 	} // end constructor
 
 	public static void main(String[] args) throws Exception {

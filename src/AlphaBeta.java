@@ -55,9 +55,10 @@ public class AlphaBeta {
 	 * @param depthLimit
 	 * @param depth
 	 * @return
+	 * @throws Exception
 	 */
 	public Pair<Double, Point> maxValue(GamePlay game, double alpha,
-			double beta, int depthLimit, int depth) {
+			double beta, int depthLimit, int depth) throws Exception {
 		// System.out.println("we called maxValue");
 		Point pBest = new Point();
 
@@ -105,7 +106,7 @@ public class AlphaBeta {
 	} // end maxValue()
 
 	public Pair<Double, Point> minValue(GamePlay game, double alpha,
-			double beta, int depthLimit, int depth) {
+			double beta, int depthLimit, int depth) throws Exception {
 
 		// System.out.println("we called minValue");
 
@@ -151,7 +152,8 @@ public class AlphaBeta {
 
 	} // end maxValue()
 
-	public Point AlphaBetaSearch(int player, GamePlay game, int depthLimit) {
+	public Point AlphaBetaSearch(int player, GamePlay game, int depthLimit)
+			throws Exception {
 
 		// min's turn black
 		if (player == 0) {
