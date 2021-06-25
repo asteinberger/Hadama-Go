@@ -92,19 +92,19 @@ public class GameListener implements KeyListener, ActionListener,
 			switch (ch) {
 			case 'A':
 			case 'a':
-				HadamaGo.getGoPanel().moveLeft();
+				HadamaGo.getGamePanel().moveLeft();
 				break;
 			case 'D':
 			case 'd':
-				HadamaGo.getGoPanel().moveRight();
+				HadamaGo.getGamePanel().moveRight();
 				break;
 			case 'S':
 			case 's':
-				HadamaGo.getGoPanel().moveDown();
+				HadamaGo.getGamePanel().moveDown();
 				break;
 			case 'W':
 			case 'w':
-				HadamaGo.getGoPanel().moveUp();
+				HadamaGo.getGamePanel().moveUp();
 				break;
 			case ' ':
 				this.placePiece();
@@ -207,25 +207,25 @@ public class GameListener implements KeyListener, ActionListener,
 		this.gamePlay.newGame();
 		this.gamePlay.setPlayer(0);
 		this.color = 0;
-		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
+		HadamaGo.getGamePanel().paint(HadamaGo.getGamePanel().getGraphics());
 	} // end newGame()
 
 	private void undoMove() {
 		this.gamePlay.undoMove(this.goBoard);
 		this.togglePlayer();
-		HadamaGo.getGoPanel().setColor(this.color);
-		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
+		HadamaGo.getGamePanel().setColor(this.color);
+		HadamaGo.getGamePanel().paint(HadamaGo.getGamePanel().getGraphics());
 	} // end undoMove()
 
 	private void placePiece() throws Exception {
 		this.gamePlay.placePiece(this.goBoard, this.color);
 		this.gameOver = this.gamePlay.isGameOver();
 		this.color = this.gamePlay.getPlayer();
-		this.ait.setGoboard(this.goBoard);
-		GoPanel gp = HadamaGo.getGoPanel();
+		this.ait.setGameBoard(this.goBoard);
+		GoPanel gp = HadamaGo.getGamePanel();
 		gp.setColor(this.color);
-		HadamaGo.setGoPanel(gp);
-		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
+		HadamaGo.setGamePanel(gp);
+		HadamaGo.getGamePanel().paint(HadamaGo.getGamePanel().getGraphics());
 	} // end placePiece()
 
 	private void pass() throws Exception {
@@ -246,15 +246,15 @@ public class GameListener implements KeyListener, ActionListener,
 					this.goBoard.getLastTiziPosition(),
 					this.goBoard.getLastTiziNum());
 
-			this.gamePlay.getGoboard().getMoves().push(newMove);
+			this.gamePlay.getGoBoard().getMoves().push(newMove);
 			this.togglePlayer();
 			this.gamePlay.setJustPassed(true);
 
 		} // end if
 
 		this.gamePlay.setPlayer(this.color);
-		HadamaGo.getGoPanel().setColor(this.color);
-		HadamaGo.getGoPanel().paint(HadamaGo.getGoPanel().getGraphics());
+		HadamaGo.getGamePanel().setColor(this.color);
+		HadamaGo.getGamePanel().paint(HadamaGo.getGamePanel().getGraphics());
 
 	} // end pass()
 

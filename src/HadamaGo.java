@@ -14,7 +14,7 @@ public class HadamaGo extends Thread {
 	/**
 	 * Hard coded game size calls for a 9x9 intersection go board.
 	 */
-	private static int length = 9;
+	private static int boardLength = 9;
 
 	/**
 	 * Hard coded game mode calls for a human versus human player game.
@@ -34,19 +34,19 @@ public class HadamaGo extends Thread {
 	/**
 	 * The game listener variable controls the action, key and mouse events
 	 */
-	private static GameListener gListen;
+	private static GameListener gameListener;
 
 	private HadamaGo game;
 
 	/**
 	 * The testFrame holds the graphic user interface.
 	 */
-	private Frame testFrame;
+	private Frame frame;
 
 	/**
 	 * The GoBoard contains the stones that are used while in game play.
 	 */
-	private Board goboard;
+	private Board gameBoard;
 
 	/**
 	 * The gamePlay variable controls what happens when players make moves on
@@ -57,77 +57,76 @@ public class HadamaGo extends Thread {
 	/**
 	 * Change the go board size using this variable.
 	 */
-	private int size;
+	private int boardSize;
 
-	private static GoPanel goPanel;
-	private static Panel panel;
-	private static HashMap<String, Button> buttons = new HashMap<String, Button>();
+	private static GoPanel gamePanel;
+	private static Panel bottomPanel;
+	private static HashMap<String, Button> buttons = new HashMap<>();
 
 	// d = dahi
 	// t = testFrame
 	// g = goboard
-	// m = mode
-	public HadamaGo(String m, int s) throws Exception {
+	// gameMode = mode
+	public HadamaGo(String gameMode, int boardSize) throws Exception {
 		this.game = this;
-		HadamaGo.gameMode = m;
-		this.size = s;
-		HadamaGo.length = s;
-		this.goboard = new Board(this.size);
-		HadamaGo.gamePlay = new GamePlay(HadamaGo.gameMode, HadamaGo.length);
-		HadamaGo.goPanel = new GoPanel(this.goboard, HadamaGo.gamePlay);
-		HadamaGo.gListen = new GameListener(this, this.goboard, this.size,
-				HadamaGo.gamePlay);
-		this.testFrame = new Frame("Hadama Go Beta 2.5 Baiji");
+		this.gameMode = gameMode;
+		this.boardSize = boardSize;
+		this.boardLength = boardSize;
+		this.gameBoard = new Board(this.boardSize);
+		this.gamePlay = new GamePlay(this.gameMode, this.boardLength);
+		this.gamePanel = new GoPanel(this.gameBoard, this.gamePlay);
+		this.gameListener = new GameListener(this, this.gameBoard, this.boardSize, this.gamePlay);
+		this.frame = new Frame("Hadama Go 3.0 Níngjìng");
 	} // end constructor
 
 	public static void main(String[] args) throws Exception {
-		HadamaGo g = new HadamaGo(HadamaGo.gameMode, HadamaGo.length);
-		g.start();
+		HadamaGo game = new HadamaGo(HadamaGo.gameMode, HadamaGo.boardLength);
+		game.start();
 	} // end main()
 
-	private void addButton(String n) {
-		Button b = new Button(n);
-		b.addActionListener(HadamaGo.gListen);
-		HadamaGo.buttons.put(n, b);
+	private void addButton(String name) {
+		Button button = new Button(name);
+		button.addActionListener(HadamaGo.gameListener);
+		HadamaGo.buttons.put(name, button);
 	} // end addButton()
 
 	public void run() {
 
-		this.testFrame.setLayout(new BorderLayout());
+		this.frame.setLayout(new BorderLayout());
 
 		this.addButton("forfeit");
 		this.addButton("pass turn");
 		this.addButton("undo move");
 		this.addButton("new game");
 
-		HadamaGo.panel = new Panel();
-		HadamaGo.panel.setLayout(new FlowLayout());
-		HadamaGo.panel.setSize(722, 20);
+		HadamaGo.bottomPanel = new Panel();
+		HadamaGo.bottomPanel.setLayout(new FlowLayout());
+		HadamaGo.bottomPanel.setSize(722, 20);
 
-		HadamaGo.panel.add(HadamaGo.buttons.get("pass turn"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("forfeit"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("undo move"));
-		HadamaGo.panel.add(HadamaGo.buttons.get("new game"));
+		HadamaGo.bottomPanel.add(HadamaGo.buttons.get("pass turn"));
+		HadamaGo.bottomPanel.add(HadamaGo.buttons.get("forfeit"));
+		HadamaGo.bottomPanel.add(HadamaGo.buttons.get("undo move"));
+		HadamaGo.bottomPanel.add(HadamaGo.buttons.get("new game"));
 
-		this.testFrame.add(HadamaGo.goPanel, BorderLayout.CENTER);
-		this.testFrame.add(HadamaGo.panel, BorderLayout.SOUTH);
-		this.testFrame.setLocation(10, 10);
-		this.testFrame.setSize(HadamaGo.frameLength, HadamaGo.frameHeight);
+		this.frame.add(HadamaGo.gamePanel, BorderLayout.CENTER);
+		this.frame.add(HadamaGo.bottomPanel, BorderLayout.SOUTH);
+		this.frame.setLocation(10, 10);
+		this.frame.setSize(HadamaGo.frameLength, HadamaGo.frameHeight);
 
 		// create an instance of the Class that listens to all events
 		// (GLEvents, Keyboard, Mouse and Menu events)
 		// add this object as all these listeners to the canvas and menu
-		this.testFrame.addKeyListener(HadamaGo.gListen);
-		this.testFrame.addMouseListener(HadamaGo.gListen);
-		this.testFrame.addMouseMotionListener(HadamaGo.gListen);
-		HadamaGo.goPanel.addKeyListener(HadamaGo.gListen);
-		HadamaGo.goPanel.addMouseListener(HadamaGo.gListen);
-		HadamaGo.goPanel.addMouseMotionListener(HadamaGo.gListen);
-		HadamaGo.panel.addKeyListener(HadamaGo.gListen);
-		HadamaGo.panel.addMouseListener(HadamaGo.gListen);
-		HadamaGo.panel.addMouseMotionListener(HadamaGo.gListen);
+		this.frame.addKeyListener(HadamaGo.gameListener);
+		this.frame.addMouseListener(HadamaGo.gameListener);
+		this.frame.addMouseMotionListener(HadamaGo.gameListener);
+		HadamaGo.gamePanel.addKeyListener(HadamaGo.gameListener);
+		HadamaGo.gamePanel.addMouseListener(HadamaGo.gameListener);
+		HadamaGo.gamePanel.addMouseMotionListener(HadamaGo.gameListener);
+		HadamaGo.bottomPanel.addKeyListener(HadamaGo.gameListener);
+		HadamaGo.bottomPanel.addMouseListener(HadamaGo.gameListener);
+		HadamaGo.bottomPanel.addMouseMotionListener(HadamaGo.gameListener);
 
-		this.testFrame.addWindowListener(new WindowAdapter() {
+		this.frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				System.exit(0);
 			} // end window
@@ -135,115 +134,20 @@ public class HadamaGo extends Thread {
 
 		// start the Animator, which periodically calls display() on the
 		// GLCanvas
-		this.testFrame.setVisible(true);
+		this.frame.setVisible(true);
 
 	} // end main
 
-	/*
-	 * getters and setters
-	 */
-	public HadamaGo getGame() {
-		return this.game;
-	} // end getGame()
+	public void setGameBoard(Board b) {
+		this.gameBoard = b;
+	} // end setGameBoard()
 
-	public void setGame(HadamaGo g) {
-		this.game = g;
-	} // end setGame()
+	public static GoPanel getGamePanel() {
+		return HadamaGo.gamePanel;
+	} // end getGamePanel()
 
-	public Frame getTestFrame() {
-		return this.testFrame;
-	} // end getTestFrame()
-
-	public void setTestFrame(Frame f) {
-		this.testFrame = f;
-	} // end setTestFrame()
-
-	public Board getGoboard() {
-		return this.goboard;
-	} // end getGoboard()
-
-	public void setGoboard(Board b) {
-		this.goboard = b;
-	} // end setGoboard()
-
-	public int getSize() {
-		return this.size;
-	} // end getSize()
-
-	public void setSize(int size) {
-		this.size = size;
-	} // end setSize()
-
-	public static GameListener getgListen() {
-		return HadamaGo.gListen;
-	} // end getgListen()
-
-	public static void setgListen(GameListener gListen) {
-		HadamaGo.gListen = gListen;
-	} // end setgListen()
-
-	public static GamePlay getGamePlay() {
-		return HadamaGo.gamePlay;
-	} // end getGamePlay()
-
-	public static void setGamePlay(GamePlay gamePlay) {
-		HadamaGo.gamePlay = gamePlay;
-	} // end setGamePlay()
-
-	public static GoPanel getGoPanel() {
-		return HadamaGo.goPanel;
-	} // end getGoPanel()
-
-	public static void setGoPanel(GoPanel goPanel) {
-		HadamaGo.goPanel = goPanel;
-	} // end setGoPanel()
-
-	public static Panel getPanel() {
-		return HadamaGo.panel;
-	} // end getPanel()
-
-	public static void setPanel(Panel panel) {
-		HadamaGo.panel = panel;
-	} // end setPanel()
-
-	public static HashMap<String, Button> getButtons() {
-		return HadamaGo.buttons;
-	} // end getButtons()
-
-	public static void setButtons(HashMap<String, Button> buttons) {
-		HadamaGo.buttons = buttons;
-	} // end setButtons()
-
-	public static int getLength() {
-		return length;
-	} // end getLength()
-
-	public static void setLength(int length) {
-		HadamaGo.length = length;
-	} // end setLength()
-
-	public static String getGameMode() {
-		return gameMode;
-	} // end getGameMode()
-
-	public static void setGameMode(String gameMode) {
-		HadamaGo.gameMode = gameMode;
-	}
-
-	public static int getFrameHeight() {
-		return frameHeight;
-	}
-
-	public static void setFrameHeight(int frameHeight) {
-		HadamaGo.frameHeight = frameHeight;
-	}
-
-	public static int getFrameLength() {
-		return frameLength;
-	}
-
-	public static void setFrameLength(int frameLength) {
-		HadamaGo.frameLength = frameLength;
-	}
+	public static void setGamePanel(GoPanel gamePanel) {
+		HadamaGo.gamePanel = gamePanel;
+	} // end setGamePanel()
 
 } // end class

@@ -2,11 +2,11 @@ import java.util.*;
 
 public class Neuron {
 
-	private Connection biasConnection;
+	private Dendrite biasDendrite;
 	private final double bias = -1;
 	private double output;
-	private ArrayList<Connection> dendrites = new ArrayList<Connection>();
-	private HashMap<Integer, Connection> dTable = new HashMap<Integer, Connection>();
+	private ArrayList<Dendrite> dendrites = new ArrayList<Dendrite>();
+	private HashMap<Integer, Dendrite> dendriteTable = new HashMap<Integer, Dendrite>();
 	private static int counter = 0;
 	public final int id; // auto increment, starts at 0
 
@@ -16,103 +16,63 @@ public class Neuron {
 	} // end constructor
 
 	public void computeOutput() {
-		double s = 0;
-		for (int i = 0; i < this.dendrites.size(); i++) {
-			Connection connect = this.dendrites.get(i);
-			Neuron fromNeuron = connect.getFromNeuron();
-			double weight = connect.getWeight();
-			double a = fromNeuron.getOutput(); // output from previous layer
-			s += weight * a;
+		double sumOfWeightedInputActivations = 0;
+		for (int index = 0; index < this.dendrites.size(); index++) {
+			Dendrite neuralConnection = this.dendrites.get(index);
+			Neuron connectingNeuron = neuralConnection.getFromNeuron();
+			double weightFromConnectingNeuron = neuralConnection.getWeight();
+			double activationFromConnectingNeuron = connectingNeuron.getOutput(); // output from previous layer
+			sumOfWeightedInputActivations += weightFromConnectingNeuron * activationFromConnectingNeuron;
 		} // end for
-		s += this.biasConnection.getWeight() * this.bias;
-		this.output = this.g(s);
+		sumOfWeightedInputActivations += this.biasDendrite.getWeight() * this.bias;
+		this.output = this.sigmoid(sumOfWeightedInputActivations);
 	} // end computeOutput()
 
-	double g(double x) {
-		return this.sigmoid(x);
-	} // end g()
-
-	double sigmoid(double x) {
-		return 1.0 / (1.0 + (Math.exp(-x)));
+	private double sigmoid(double input) {
+		return 1.0 / (1.0 + (Math.exp(-input)));
 	} // end sigmoid()
 
-	public void addDendrites(ArrayList<Neuron> in) {
-		for (int i = 0; i < in.size(); i++) {
-			Neuron neuron = in.get(i);
-			Connection connect = new Connection(neuron, this);
-			this.dendrites.add(connect);
-			this.dTable.put(neuron.id, connect);
+	public void addNeurons(ArrayList<Neuron> neurons) {
+		for (int index = 0; index < neurons.size(); index++) {
+			Neuron neuron = neurons.get(index);
+			Dendrite dendrite = new Dendrite(neuron, this);
+			this.dendrites.add(dendrite);
+			this.dendriteTable.put(neuron.id, dendrite);
 		} // end for
-	} // end addDendrites()
+	} // end addNeurons()
 
 	@Override
 	public String toString() {
-		return "[Neuron biasConnection=" + this.biasConnection + ", bias="
+		return "[Neuron biasDendrite=" + this.biasDendrite + ", bias="
 				+ this.bias + ", output=" + this.output + ", dendrites="
-				+ this.dendrites + ", dTable=" + this.dTable + ", id="
+				+ this.dendrites + ", dendriteTable=" + this.dendriteTable + ", id="
 				+ this.id + "]";
 	} // end toString()
 
-	public Connection getConnection(int nIndex) {
-		return this.dTable.get(nIndex);
-	} // end getConnection()
+	public Dendrite getDendrite(int index) {
+		return this.dendriteTable.get(index);
+	} // end getDendrite()
 
-	public void addInConnection(Connection c) {
-		this.dendrites.add(c);
-	} // end addInConnection()
+	public void addBias(Neuron biasNeuron) {
+		Dendrite dendrite = new Dendrite(biasNeuron, this);
+		this.biasDendrite = dendrite;
+		this.dendrites.add(dendrite);
+	} // end addBias()
 
-	public void addBiasConnection(Neuron n) {
-		Connection connect = new Connection(n, this);
-		this.biasConnection = connect;
-		this.dendrites.add(connect);
-	} // end addBiasConnection()
-
-	public ArrayList<Connection> getDendrites() {
+	public ArrayList<Dendrite> getDendrites() {
 		return this.dendrites;
 	} // end getDendrites()
-
-	public double getBias() {
-		return this.bias;
-	} // end getBias()
 
 	public double getOutput() {
 		return this.output;
 	} // end getOutput()
 
-	public void setOutput(double o) {
-		this.output = o;
+	public void setOutput(double output) {
+		this.output = output;
 	} // end setOutput()
 
-	public Connection getBiasConnection() {
-		return this.biasConnection;
-	} // end getBiasConnection()
-
-	public void setBiasConnection(Connection b) {
-		this.biasConnection = b;
-	} // end setBiasConnection()
-
-	public HashMap<Integer, Connection> getdTable() {
-		return this.dTable;
-	} // end getdTable()
-
-	public void setdTable(HashMap<Integer, Connection> d) {
-		this.dTable = d;
-	} // end setdTable()
-
-	public static int getCounter() {
-		return Neuron.counter;
-	} // end getCounter()
-
-	public static void setCounter(int c) {
-		Neuron.counter = c;
+	public static void setCounter(int counter) {
+		Neuron.counter = counter;
 	} // end setCounter()
-
-	public int getId() {
-		return this.id;
-	} // end getId()
-
-	public void setDendrites(ArrayList<Connection> dendrites) {
-		this.dendrites = dendrites;
-	} // end setDendrites()
 
 } // end class

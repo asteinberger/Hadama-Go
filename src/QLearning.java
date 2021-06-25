@@ -38,9 +38,9 @@ public class QLearning {
 	 */
 	public ArrayList<Point> findLegalMoves(int player, GamePlay game) {
 
-		int size = game.getGoboard().getSize();
+		int size = game.getGoBoard().getSize();
 		if (player == 0) {
-			ArrayList<Point> illegalMovesBlack = game.getGoboard()
+			ArrayList<Point> illegalMovesBlack = game.getGoBoard()
 					.getIllegalMovesforBlack();
 			ArrayList<Point> legalMovesBlack = new ArrayList<Point>();
 
@@ -55,7 +55,7 @@ public class QLearning {
 
 		} else {
 
-			ArrayList<Point> illegalMovesWhite = game.getGoboard()
+			ArrayList<Point> illegalMovesWhite = game.getGoBoard()
 					.getIllegalMovesforWhite();
 			ArrayList<Point> legalMovesWhite = new ArrayList<Point>();
 			for (int row = 0; row < size; row++) {
@@ -74,7 +74,7 @@ public class QLearning {
 
 	public Point iterateValue(int player, GamePlay game) throws Exception {
 
-		String code = game.getGoboard().getCodes();
+		String code = game.getGoBoard().getCodes();
 		ArrayList<Point> moves = this.findLegalMoves(player, game);
 
 		if (moves.size() == 0) {
@@ -90,8 +90,8 @@ public class QLearning {
 		else if (player == 1)
 			playerCode = "10";
 
-		network.setInput(code);
-		double[] out = network.getOutput();
+		network.setInputs(code);
+		double[] out = network.getOutputs();
 		double q = this.qValue(player, out);
 
 		double[] outMax = new double[out.length];
@@ -115,8 +115,8 @@ public class QLearning {
 
 			moveCode = before.concat(playerCode).concat(after);
 
-			network.setInput(moveCode);
-			double[] outNext = network.getOutput();
+			network.setInputs(moveCode);
+			double[] outNext = network.getOutputs();
 			double qNext = this.qValue(player, outNext);
 
 			if (qNext > qMax) {
@@ -180,8 +180,8 @@ public class QLearning {
 
 			moveCode = before.concat(playerCode).concat(after);
 
-			network.setInput(moveCode);
-			double[] randOut = network.getOutput();
+			network.setInputs(moveCode);
+			double[] randOut = network.getOutputs();
 			qMax = this.qValue(player, randOut);
 
 		} // end if

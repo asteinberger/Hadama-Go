@@ -7,126 +7,106 @@ public class NeuralNetwork {
 	private ArrayList<Neuron> inputLayer = new ArrayList<Neuron>();
 	private ArrayList<Neuron> hiddenLayer = new ArrayList<Neuron>();
 	private ArrayList<Neuron> outputLayer = new ArrayList<Neuron>();
-	private Neuron bias = new Neuron();
+	private Neuron biasNeuron = new Neuron();
 	private int[] layers;
 	private double epsilon = 0.00000000001;
 	private double learningRate = 0.9f;
 	private double momentum = 0.7f;
-	private double inputs[][] = { { 1, 1 }, { 1, 0 }, { 0, 1 }, { 0, 0 } };
-	private double expectedOutputs[][] = { { 0 }, { 1 }, { 1 }, { 0 } };
-	private double resultOutputs[][] = { { -1 }, { -1 }, { -1 }, { -1 } };
-	private double output[];
-	private boolean isTrained = false;
+	private double inputs[][];
+	private double expectedOutputs[][];
+	private double resultingOutputs[][];
+	private boolean isTheNetworkTrained = false;
 
-	public NeuralNetwork(int input, int hidden, int output) throws Exception {
+	public NeuralNetwork(int numberOfInputNeurons,
+						 int numberOfHiddenNeurons,
+						 int numberOfOutputNeurons) {
 
-		this.layers = new int[] { input, hidden, output };
+		// build the neural network
+		buildNeuralNetwork(
+				numberOfInputNeurons,
+				numberOfHiddenNeurons,
+				numberOfOutputNeurons
+		);
 
-		for (int i = 0; i < this.layers.length; i++) {
-
-			if (i == 0) { // input layer
-
-				for (int j = 0; j < this.layers[i]; j++) {
-					Neuron neuron = new Neuron();
-					this.inputLayer.add(neuron);
-				} // end if
-
-			} else if (i == 1) { // hidden layer
-
-				for (int j = 0; j < this.layers[i]; j++) {
-					Neuron neuron = new Neuron();
-					neuron.addDendrites(this.inputLayer);
-					neuron.addBiasConnection(this.bias);
-					this.hiddenLayer.add(neuron);
-				} // end for
-
-			} else if (i == 2) { // output layer
-
-				for (int j = 0; j < this.layers[i]; j++) {
-					Neuron neuron = new Neuron();
-					neuron.addDendrites(this.hiddenLayer);
-					neuron.addBiasConnection(this.bias);
-					this.outputLayer.add(neuron);
-				} // end for
-
-			} else {
-				System.err
-						.println("Error: Neural Network could not be initialized!");
-			} // end if
-
-		} // end for
-
-		// initialize random weights
-		for (int n = 0; n < this.hiddenLayer.size(); n++) {
-			Neuron neuron = this.hiddenLayer.get(n);
-			ArrayList<Connection> connections = neuron.getDendrites();
-			for (int c = 0; c < connections.size(); c++) {
-				Connection connect = connections.get(c);
-				double weight = this.getRandom();
-				connect.setWeight(weight);
-			} // end for
-		} // end for
-
-		for (int n = 0; n < this.outputLayer.size(); n++) {
-			Neuron neuron = this.outputLayer.get(n);
-			ArrayList<Connection> connections = neuron.getDendrites();
-			for (int c = 0; c < connections.size(); c++) {
-				Connection connect = connections.get(c);
-				double weight = this.getRandom();
-				connect.setWeight(weight);
-			} // end for
-		} // end for
+		// set neural connection weights
+		setWeights(true, null, null);
 
 		// reset id counters
-		Neuron.setCounter(0);
-		Connection.setCounter(0);
+		resetIdCounters();
 
 	} // end constructor
 
-	public NeuralNetwork(int input, int hidden, int output, String fileName)
+	public NeuralNetwork(int numberOfInputNeurons,
+						 int numberOfHiddenNeurons,
+						 int numberOfOutputNeurons,
+						 String providedWeightsFileName)
 			throws Exception {
 
-		this.layers = new int[] { input, hidden, output };
+		FileInputStream inputFileStream = new FileInputStream(providedWeightsFileName);
+		DataInputStream inputDataStream = new DataInputStream(inputFileStream);
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputDataStream));
 
-		FileInputStream fstream = new FileInputStream(fileName);
-		DataInputStream in = new DataInputStream(fstream);
-		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		ArrayList<String> inputData = new ArrayList<String>();
+		String inputLine;
 
-		ArrayList<String> data = new ArrayList<String>();
-		String strLine;
+		while ((inputLine = bufferedReader.readLine()) != null) {
+			inputData.add(inputLine);
+		}
 
-		while ((strLine = br.readLine()) != null)
-			data.add(strLine);
+		inputDataStream.close();
 
-		in.close();
+		String[] inputHiddenLayer = inputData.get(0).split(" ");
+		String[] inputOutputLayer = inputData.get(1).split(" ");
 
-		String[] hl = data.get(0).split(" ");
-		String[] ol = data.get(1).split(" ");
+		// Build the Neural Network
+		buildNeuralNetwork(
+				numberOfInputNeurons,
+				numberOfHiddenNeurons,
+				numberOfOutputNeurons
+		);
 
-		for (int i = 0; i < this.layers.length; i++) {
+		// set neural connection weights
+		setWeights(false, inputHiddenLayer, inputOutputLayer);
 
-			if (i == 0) { // input layer
+		// reset id counters
+		resetIdCounters();
 
-				for (int j = 0; j < this.layers[i]; j++) {
+	} // end constructor
+
+	private void buildNeuralNetwork(int numberOfInputNeurons,
+									int numberOfHiddenNeurons,
+									int numberOfOutputNeurons) {
+
+		this.layers = new int[] {
+				numberOfInputNeurons,
+				numberOfHiddenNeurons,
+				numberOfOutputNeurons
+		};
+
+		for (int layerIndex = 0; layerIndex < this.layers.length; layerIndex++) {
+
+			if (layerIndex == 0) { // input layer
+
+				for (int neuronIndex = 0; neuronIndex < this.layers[layerIndex]; neuronIndex++) {
 					Neuron neuron = new Neuron();
 					this.inputLayer.add(neuron);
 				} // end if
 
-			} else if (i == 1) { // hidden layer
+			} else if (layerIndex == 1) { // hidden layer
 
-				for (int j = 0; j < this.layers[i]; j++) {
+				for (int neuronIndex = 0; neuronIndex < this.layers[layerIndex]; neuronIndex++) {
 					Neuron neuron = new Neuron();
-					neuron.addDendrites(this.inputLayer);
-					neuron.addBiasConnection(this.bias);
+					neuron.addNeurons(this.inputLayer);
+					neuron.addBias(this.biasNeuron);
 					this.hiddenLayer.add(neuron);
 				} // end for
 
-			} else if (i == 2) { // output layer
+			} else if (layerIndex == 2) { // output layer
 
-				for (int j = 0; j < this.layers[i]; j++) {
+				for (int neuronIndex = 0; neuronIndex < this.layers[layerIndex]; neuronIndex++) {
 					Neuron neuron = new Neuron();
-					neuron.addDendrites(this.hiddenLayer);
-					neuron.addBiasConnection(this.bias);
+					neuron.addNeurons(this.hiddenLayer);
+					neuron.addBias(this.biasNeuron);
 					this.outputLayer.add(neuron);
 				} // end for
 
@@ -137,50 +117,79 @@ public class NeuralNetwork {
 
 		} // end for
 
-		int index = 0;
-		// initialize random weights
-		for (int n = 0; n < this.hiddenLayer.size(); n++) {
-			Neuron neuron = this.hiddenLayer.get(n);
-			ArrayList<Connection> connections = neuron.getDendrites();
-			for (int c = 0; c < connections.size(); c++) {
-				Connection connect = connections.get(c);
-				double weight = Double.parseDouble(hl[index]);
-				connect.setWeight(weight);
-				index++;
-			} // end for
+	} // end buildNeuralNetwork()
+
+	private void setWeights(boolean weightsAreRandom,
+							String[] hiddenLayerWeights,
+							String[] outputLayerWeights) {
+
+		int weightsIndex = 0;
+		for (int hiddenLayerIndex = 0; hiddenLayerIndex < this.hiddenLayer.size(); hiddenLayerIndex++) {
+			Neuron neuron = this.hiddenLayer.get(hiddenLayerIndex);
+			ArrayList<Dendrite> dendrites = neuron.getDendrites();
+			setDendriteWeight(
+					weightsAreRandom,
+					weightsIndex,
+					dendrites,
+					hiddenLayerWeights
+			);
 		} // end for
 
-		index = 0;
-		for (int n = 0; n < this.outputLayer.size(); n++) {
-			Neuron neuron = this.outputLayer.get(n);
-			ArrayList<Connection> connections = neuron.getDendrites();
-			for (int c = 0; c < connections.size(); c++) {
-				Connection connect = connections.get(c);
-				double weight = Double.parseDouble(ol[index]);
-				connect.setWeight(weight);
-				index++;
-			} // end for
+		weightsIndex = 0;
+		for (int outputLayerIndex = 0; outputLayerIndex < this.outputLayer.size(); outputLayerIndex++) {
+			Neuron neuron = this.outputLayer.get(outputLayerIndex);
+			ArrayList<Dendrite> dendrites = neuron.getDendrites();
+			setDendriteWeight(
+					weightsAreRandom,
+					weightsIndex,
+					dendrites,
+					outputLayerWeights
+			);
 		} // end for
 
-		// reset id counters
+	} // end setWeights()
+
+	private void setDendriteWeight(boolean weightsAreRandom,
+								  int weightsIndex,
+								  ArrayList<Dendrite> dendrites,
+								  String[] layerWeights) {
+
+		for (int connectionIndex = 0; connectionIndex < dendrites.size(); connectionIndex++) {
+			Dendrite dendrite = dendrites.get(connectionIndex);
+			double connectionWeight;
+			if (weightsAreRandom) {
+				connectionWeight = this.getRandom();
+			} else {
+				connectionWeight = Double.parseDouble(layerWeights[weightsIndex]);
+			}
+			dendrite.setWeight(connectionWeight);
+			weightsIndex++;
+		} // end for
+
+	} // end setDendriteWeight()
+
+	private void resetIdCounters() {
 		Neuron.setCounter(0);
-		Connection.setCounter(0);
+		Dendrite.setCounter(0);
+	} // end resetIdCounters()
 
-	} // end constructor
-
-	public void setupNetwork(double e, double lr, double m, double[][] in,
-			double[][] out) {
-		this.epsilon = e;
-		this.learningRate = lr;
-		this.momentum = m;
-		this.inputs = in;
-		this.expectedOutputs = out;
-		this.resultOutputs = new double[out.length][out[0].length];
-		for (int i = 0; i < out.length; i++)
-			Arrays.fill(this.resultOutputs[i], 0.0);
+	public void setupNetwork(double epsilon,
+							 double learningRate,
+							 double momentum,
+							 double[][] inputs,
+							 double[][] expectedOutputs) {
+		this.epsilon = epsilon;
+		this.learningRate = learningRate;
+		this.momentum = momentum;
+		this.inputs = inputs;
+		this.expectedOutputs = expectedOutputs;
+		this.resultingOutputs = new double[expectedOutputs.length][expectedOutputs[0].length];
+		for (int index = 0; index < expectedOutputs.length; index++) {
+			Arrays.fill(this.resultingOutputs[index], 0.0);
+		}
 	} // end setupNetwork()
 
-	double getRandom() {
+	private double getRandom() {
 		return this.random.nextDouble(); // [0,1]
 	} // end getRandom()
 
@@ -189,48 +198,50 @@ public class NeuralNetwork {
 	 * 
 	 * @param inputs
 	 */
-	public void setInput(double inputs[]) {
-		for (int i = 0; i < this.inputLayer.size(); i++)
-			this.inputLayer.get(i).setOutput(inputs[i]);
+	public void setInputs(double inputs[]) {
+		for (int index = 0; index < this.inputLayer.size(); index++) {
+			this.inputLayer.get(index).setOutput(inputs[index]);
+		}
 	} // end setInput()
 
-	public void setInput(String code) {
-		for (int i = 0; i < code.length(); i++) {
-			char cBit = code.charAt(i);
-			String sBit = String.valueOf(cBit);
-			int bit = Integer.parseInt(sBit);
-			this.inputLayer.get(i).setOutput(bit);
+	public void setInputs(String code) {
+		for (int index = 0; index < code.length(); index++) {
+			char character = code.charAt(index);
+			String string = String.valueOf(character);
+			int bit = Integer.parseInt(string);
+			this.inputLayer.get(index).setOutput(bit);
 		} // end for
-	} // end setInput()
+	} // end setInputs()
 
 	/**
 	 * Get output learned from neural network thought
 	 * 
 	 * @return
 	 */
-	public double[] getOutput() {
+	public double[] getOutputs() {
 		double[] outputs = new double[this.outputLayer.size()];
-		for (int i = 0; i < this.outputLayer.size(); i++)
-			outputs[i] = this.outputLayer.get(i).getOutput();
+		for (int index = 0; index < this.outputLayer.size(); index++) {
+			outputs[index] = this.outputLayer.get(index).getOutput();
+		}
 		return outputs;
-	} // end getOutput()
+	} // end getOutputs()
 
 	/**
 	 * Feed Forward
 	 */
 	public void feedForward() {
 
-		for (int n = 0; n < this.hiddenLayer.size(); n++) {
-			Neuron neuron = this.hiddenLayer.get(n);
+		for (int index = 0; index < this.hiddenLayer.size(); index++) {
+			Neuron neuron = this.hiddenLayer.get(index);
 			neuron.computeOutput();
 		} // end for
 
-		for (int n = 0; n < this.outputLayer.size(); n++) {
-			Neuron neuron = this.outputLayer.get(n);
+		for (int index = 0; index < this.outputLayer.size(); index++) {
+			Neuron neuron = this.outputLayer.get(index);
 			neuron.computeOutput();
 		} // end for
 
-	} // end activate()
+	} // end feedForward()
 
 	/**
 	 * Back Propagation
@@ -243,71 +254,70 @@ public class NeuralNetwork {
 	public void backPropagate(double expectedOutput[]) {
 
 		// error check, normalize value [0,1]
-		for (int i = 0; i < expectedOutput.length; i++) {
-			double d = expectedOutput[i];
-			if ((d < 0) || (d > 1)) {
-				if (d < 0)
-					expectedOutput[i] = this.epsilon;
-				else
-					expectedOutput[i] = 1.0 - this.epsilon;
+		for (int expectedOutputIndex = 0; expectedOutputIndex < expectedOutput.length; expectedOutputIndex++) {
+			double expected = expectedOutput[expectedOutputIndex];
+			if ((expected < 0) || (expected > 1)) {
+				if (expected < 0) {
+					expectedOutput[expectedOutputIndex] = this.epsilon;
+				} else {
+					expectedOutput[expectedOutputIndex] = 1.0 - this.epsilon;
+				}
 			} // end if
 		} // end for
 
-		int i = 0;
+		int index = 0;
 
 		// update weights for the output layer
-		for (int n = 0; n < this.outputLayer.size(); n++) {
+		for (int outputIndex = 0; outputIndex < this.outputLayer.size(); outputIndex++) {
 
-			Neuron neuron = this.outputLayer.get(n);
-			ArrayList<Connection> connections = neuron.getDendrites();
+			Neuron outputNeuron = this.outputLayer.get(outputIndex);
+			ArrayList<Dendrite> dendrites = outputNeuron.getDendrites();
 
-			for (int c = 0; c < connections.size(); c++) {
-				Connection connect = connections.get(c);
-				double ak = neuron.getOutput();
-				double ai = connect.getLeftNeuron().getOutput();
-				double desiredOutput = expectedOutput[i];
-				double partialDeriv = -ak * (1.0 - ak) * ai
-						* (desiredOutput - ak);
-				double deltaWeight = -this.learningRate * partialDeriv;
-				double weight = connect.getWeight() + deltaWeight;
-				connect.setDeltaWeight(deltaWeight);
-				connect.setWeight(weight + this.momentum
-						* connect.getPrevDeltaWeight());
+			for (int dendriteIndex = 0; dendriteIndex < dendrites.size(); dendriteIndex++) {
+				Dendrite dendrite = dendrites.get(dendriteIndex);
+				double output = outputNeuron.getOutput();
+				double hiddenNeuronActivation = dendrite.getFromNeuron().getOutput();
+				double desiredOutput = expectedOutput[index];
+				double partialDerivative = -output * (1.0 - output) * hiddenNeuronActivation
+						* (desiredOutput - output);
+				double deltaWeight = -this.learningRate * partialDerivative;
+				double adjustedWeight = dendrite.getWeight() + deltaWeight;
+				dendrite.setDeltaWeight(deltaWeight);
+				dendrite.setWeight(adjustedWeight + this.momentum
+						* dendrite.getPreviousDeltaWeight());
 			} // end for
 
-			i++;
+			index++;
 
 		} // end for
 
 		// update weights for the hidden layer
-		for (int n = 0; n < this.hiddenLayer.size(); n++) {
+		for (int hiddenIndex = 0; hiddenIndex < this.hiddenLayer.size(); hiddenIndex++) {
 
-			Neuron neuron = this.hiddenLayer.get(n);
-			ArrayList<Connection> connections = neuron.getDendrites();
+			Neuron hiddenNeuron = this.hiddenLayer.get(hiddenIndex);
+			ArrayList<Dendrite> dendrites = hiddenNeuron.getDendrites();
 
-			for (int c = 0; c < connections.size(); c++) {
+			for (int dendriteIndex = 0; dendriteIndex < dendrites.size(); dendriteIndex++) {
 
-				Connection connect = connections.get(c);
-				double aj = neuron.getOutput();
-				double ai = connect.getLeftNeuron().getOutput();
-				double sumKoutputs = 0;
-				int j = 0;
+				Dendrite dendrite = dendrites.get(dendriteIndex);
+				double hiddenNeuronOutput = hiddenNeuron.getOutput();
+				double inputNeuronOutput = dendrite.getFromNeuron().getOutput();
+				double computedSumOfOutputs = 0;
 
-				for (int n2 = 0; n2 < this.outputLayer.size(); n2++) {
-					Neuron neuron2 = this.outputLayer.get(n2);
-					double wjk = neuron2.getConnection(neuron.id).getWeight();
-					double desiredOutput = (double) expectedOutput[j];
-					double ak = neuron2.getOutput();
-					j++;
-					sumKoutputs += -(desiredOutput - ak) * ak * (1 - ak) * wjk;
+				for (int outputIndex = 0; outputIndex < this.outputLayer.size(); outputIndex++) {
+					Neuron outputNeuron = this.outputLayer.get(outputIndex);
+					double hiddenNeuronWeight = outputNeuron.getDendrite(hiddenNeuron.id).getWeight();
+					double desiredOutput = expectedOutput[outputIndex];
+					double actualOutput = outputNeuron.getOutput();
+					computedSumOfOutputs += -(desiredOutput - actualOutput) * actualOutput * (1 - actualOutput) * hiddenNeuronWeight;
 				} // end for
 
-				double partialDeriv = aj * (1 - aj) * ai * sumKoutputs;
-				double deltaWeight = -this.learningRate * partialDeriv;
-				double weight = connect.getWeight() + deltaWeight;
-				connect.setDeltaWeight(deltaWeight);
-				connect.setWeight(weight + this.momentum
-						* connect.getPrevDeltaWeight());
+				double partialDerivative = hiddenNeuronOutput * (1 - hiddenNeuronOutput) * inputNeuronOutput * computedSumOfOutputs;
+				double deltaWeight = -this.learningRate * partialDerivative;
+				double adjustedWeight = dendrite.getWeight() + deltaWeight;
+				dendrite.setDeltaWeight(deltaWeight);
+				dendrite.setWeight(adjustedWeight + this.momentum
+						* dendrite.getPreviousDeltaWeight());
 
 			} // end for
 
@@ -315,246 +325,103 @@ public class NeuralNetwork {
 
 	} // end backPropagate()
 
-	public void run(int maxSteps, double minError, String fileName)
+	public void trainTheNetwork(int maximumSteps, double minimumError, String trainedWeightsOutputFileName)
 			throws Exception {
 
-		int i;
+		int steps;
 		double error = 1;
 
-		for (i = 0; (i < maxSteps) && (error > minError); i++) {
+		for (steps = 0; (steps < maximumSteps) && (error > minimumError); steps++) {
 
 			error = 0;
 
-			for (int p = 0; p < this.inputs.length; p++) {
+			for (int row = 0; row < this.inputs.length; row++) {
 
-				this.setInput(this.inputs[p]);
+				this.setInputs(this.inputs[row]);
 				this.feedForward();
-				this.output = this.getOutput();
-				this.resultOutputs[p] = this.output;
+				this.resultingOutputs[row] = this.getOutputs();
 
-				for (int j = 0; j < this.expectedOutputs[p].length; j++) {
-					double err = Math.pow(this.output[j]
-							- this.expectedOutputs[p][j], 2.0);
-					error += err;
+				for (int column = 0; column < this.expectedOutputs[row].length; column++) {
+					double calculatedError = Math.pow(this.resultingOutputs[row][column]
+							- this.expectedOutputs[row][column], 2.0);
+					error += calculatedError;
 				} // end for
 
-				this.backPropagate(this.expectedOutputs[p]);
+				this.backPropagate(this.expectedOutputs[row]);
 
-				this.saveWeights(fileName);
+				this.saveWeights(trainedWeightsOutputFileName);
 
 			} // end for
 
 		} // end for
 
-		this.isTrained = true;
+		this.isTheNetworkTrained = true;
 
-		// this.printResult();
-
-		if (i == maxSteps)
+		if (steps == maximumSteps) {
 			System.err
 					.println("Error: Neural Network training procedure has failed!");
+		}
 
-	} // end if
-
-	void printResult() {
-
-		for (int p = 0; p < this.inputs.length; p++) {
-
-			System.out.print("INPUTS: ");
-			for (int x = 0; x < this.layers[0]; x++)
-				System.out.print(this.inputs[p][x] + " ");
-
-			System.out.print("EXPECTED: ");
-			for (int x = 0; x < this.layers[2]; x++)
-				System.out.print(this.expectedOutputs[p][x] + " ");
-
-			System.out.print("ACTUAL: ");
-			for (int x = 0; x < this.layers[2]; x++)
-				System.out.print(this.resultOutputs[p][x] + " ");
-
-			System.out.println();
-
-		} // end for
-
-		System.out.println();
-
-	} // end printResult()
+	} // end trainTheNetwork()
 
 	@Override
 	public String toString() {
 		return "[NeuralNetwork \ninputLayer=" + this.inputLayer
 				+ ", \nhiddenLayer=" + this.hiddenLayer + ", \noutputLayer="
-				+ this.outputLayer + ", \nbias=" + this.bias + ", layers="
+				+ this.outputLayer + ", \nbiasNeuron=" + this.biasNeuron + ", layers="
 				+ Arrays.toString(this.layers) + ", epsilon=" + this.epsilon
 				+ ", learningRate=" + this.learningRate + ", momentum="
 				+ this.momentum + ", \ninputs="
 				+ Arrays.deepToString(this.inputs) + ", \nexpectedOutputs="
 				+ Arrays.deepToString(this.expectedOutputs)
-				+ ", \nresultOutputs="
-				+ Arrays.deepToString(this.resultOutputs) + ", \noutput="
-				+ Arrays.toString(this.output) + ", \nisTrained="
-				+ this.isTrained + "]";
+				+ ", \nresultingOutputs="
+				+ Arrays.deepToString(this.resultingOutputs) + ", \nisTheNetworkTrained="
+				+ this.isTheNetworkTrained + "]";
 	} // end toString()
 
-	public void saveWeights(String fileName) throws Exception {
+	public void saveWeights(String outputFileName) throws Exception {
 
-		ArrayList<Double> hidden = new ArrayList<Double>();
-		for (int i = 0; i < this.hiddenLayer.size(); i++) {
-			Neuron node = this.hiddenLayer.get(i);
-			ArrayList<Connection> dendrites = node.getDendrites();
-			for (int j = 0; j < dendrites.size(); j++) {
-				Connection dendrite = dendrites.get(j);
+		ArrayList<Double> hiddenWeights = new ArrayList<Double>();
+		for (int neuronIndex = 0; neuronIndex < this.hiddenLayer.size(); neuronIndex++) {
+			Neuron neuron = this.hiddenLayer.get(neuronIndex);
+			ArrayList<Dendrite> dendrites = neuron.getDendrites();
+			for (int dendriteIndex = 0; dendriteIndex < dendrites.size(); dendriteIndex++) {
+				Dendrite dendrite = dendrites.get(dendriteIndex);
 				double weight = dendrite.getWeight();
-				hidden.add(weight);
+				hiddenWeights.add(weight);
 			} // end for
 		} // end for
 
-		ArrayList<Double> output = new ArrayList<Double>();
-		for (int i = 0; i < this.outputLayer.size(); i++) {
-			Neuron node = this.outputLayer.get(i);
-			ArrayList<Connection> dendrites = node.getDendrites();
-			for (int j = 0; j < dendrites.size(); j++) {
-				Connection dendrite = dendrites.get(j);
+		ArrayList<Double> outputWeights = new ArrayList<Double>();
+		for (int neuronIndex = 0; neuronIndex < this.outputLayer.size(); neuronIndex++) {
+			Neuron neuron = this.outputLayer.get(neuronIndex);
+			ArrayList<Dendrite> dendrites = neuron.getDendrites();
+			for (int dendriteIndex = 0; dendriteIndex < dendrites.size(); dendriteIndex++) {
+				Dendrite dendrite = dendrites.get(dendriteIndex);
 				double weight = dendrite.getWeight();
-				output.add(weight);
+				outputWeights.add(weight);
 			} // end for
 		} // end for
 
 		String data = "";
 
-		for (int i = 0; i < hidden.size(); i++) {
-			double weight = hidden.get(i);
+		for (int index = 0; index < hiddenWeights.size(); index++) {
+			double weight = hiddenWeights.get(index);
 			data += weight + " ";
 		} // end for
 
 		data += "\n";
 
-		for (int i = 0; i < output.size(); i++) {
-			double weight = output.get(i);
+		for (int index = 0; index < outputWeights.size(); index++) {
+			double weight = outputWeights.get(index);
 			data += weight + " ";
 		} // end for
 
-		FileWriter fstream = new FileWriter(fileName);
-		BufferedWriter out = new BufferedWriter(fstream);
-		out.write(data + "\n");
-		out.close();
+		FileWriter fileWriter = new FileWriter(outputFileName);
+		BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+		bufferedWriter.write(data + "\n");
+		bufferedWriter.close();
 
 	} // end saveWeights()
-
-	public ArrayList<Double> layerWeights(ArrayList<Neuron> layer) {
-		ArrayList<Double> weights = new ArrayList<Double>();
-		Iterator<Neuron> it = this.inputLayer.iterator();
-		while (it.hasNext()) {
-			Neuron next = it.next();
-			ArrayList<Connection> dendrites = next.getDendrites();
-			Iterator<Connection> it2 = dendrites.iterator();
-			while (it2.hasNext()) {
-				Connection next2 = it2.next();
-				double weight = next2.getWeight();
-				weights.add(weight);
-			} // end while
-		} // end while
-		return weights;
-	} // end printLayers()
-
-	public ArrayList<Neuron> getInputLayer() {
-		return this.inputLayer;
-	} // end getInputLayer()
-
-	public void setInputLayer(ArrayList<Neuron> i) {
-		this.inputLayer = i;
-	} // end setInputLayer()
-
-	public ArrayList<Neuron> getHiddenLayer() {
-		return this.hiddenLayer;
-	} // end getHiddenLayer()
-
-	public void setHiddenLayer(ArrayList<Neuron> h) {
-		this.hiddenLayer = h;
-	} // end setHiddenLayer()
-
-	public ArrayList<Neuron> getOutputLayer() {
-		return this.outputLayer;
-	} // end getOutputLayer()
-
-	public void setOutputLayer(ArrayList<Neuron> o) {
-		this.outputLayer = o;
-	} // end setOutputLayer()
-
-	public Neuron getBias() {
-		return this.bias;
-	} // end getBias()
-
-	public void setBias(Neuron b) {
-		this.bias = b;
-	} // end setBias()
-
-	public int[] getLayers() {
-		return this.layers;
-	} // end getLayers()
-
-	public void setLayers(int[] l) {
-		this.layers = l;
-	} // end setLayers()
-
-	public double getEpsilon() {
-		return this.epsilon;
-	} // end getEpsilon()
-
-	public void setEpsilon(double e) {
-		this.epsilon = e;
-	} // end setEpsilon()
-
-	public double getLearningRate() {
-		return this.learningRate;
-	} // end getLearningRate()
-
-	public void setLearningRate(double l) {
-		this.learningRate = l;
-	} // end setLearningRate()
-
-	public double getMomentum() {
-		return this.momentum;
-	} // end getMomentum()
-
-	public void setMomentum(double m) {
-		this.momentum = m;
-	} // end setMomentum()
-
-	public double[][] getInputs() {
-		return this.inputs;
-	} // end getInputs()
-
-	public void setInputs(double[][] i) {
-		this.inputs = i;
-	} // end setInputs()
-
-	public double[][] getExpectedOutputs() {
-		return this.expectedOutputs;
-	} // end getExpectedOutputs()
-
-	public void setExpectedOutputs(double[][] e) {
-		this.expectedOutputs = e;
-	} // end setExpectedOutputs()
-
-	public double[][] getResultOutputs() {
-		return this.resultOutputs;
-	} // end getResultOutputs()
-
-	public void setResultOutputs(double[][] r) {
-		this.resultOutputs = r;
-	} // end setResultOutputs()
-
-	public void setOutput(double[] o) {
-		this.output = o;
-	} // end setOutput()
-
-	public boolean isTrained() {
-		return this.isTrained;
-	} // end isTrained()
-
-	public void setTrained(boolean i) {
-		this.isTrained = i;
-	} // end setTrained()
 
 } // end class

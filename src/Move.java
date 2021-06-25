@@ -8,84 +8,55 @@ public class Move {
 	private int counter;
 	private static int counterOfMove;
 	private Point lastMove;
-	private boolean ispass;
+	private boolean isPass;
 	private Point lastTiziPosition;
-	private int lastNumTizi;
+	private int lastNumberTizi;
 
-	public Move(Stone s, ArrayList<Chain> c, Point lm, boolean p, Point lp,
-			int lntizi) {
-		this.added = s;
-		this.removedChain = c;
-		this.lastMove = lm;
-		this.ispass = p;
-		this.lastTiziPosition = lp;
-		this.lastNumTizi = lntizi;
-
-		counter = counterOfMove;
-		counterOfMove++;
+	public Move(Stone stone,
+				ArrayList<Chain> chains,
+				Point lastMove,
+				boolean isPass,
+				Point lastTiziPosition,
+				int lastNumberTizi) {
+		this.added = stone;
+		this.removedChain = chains;
+		this.lastMove = lastMove;
+		this.isPass = isPass;
+		this.lastTiziPosition = lastTiziPosition;
+		this.lastNumberTizi = lastNumberTizi;
+		this.counter = counterOfMove;
+		this.counterOfMove++;
 	} // end constructor
 
 	public boolean getisPass() {
-		return this.ispass;
-	}
-
-	public void setisPass(boolean ip) {
-		this.ispass = ip;
+		return this.isPass;
 	}
 
 	public Stone getAddedStone() {
 		return this.added;
 	}
 
-	public void setAddedStone(Stone added) {
-		this.added = added;
-	}
-
 	public Point getlastTiziPosition() {
 		return this.lastTiziPosition;
 	}
 
-	public void setlastTiziPosition(Point lp) {
-		this.lastTiziPosition = lp;
-	}
-
 	public int getlastNumTizi() {
-		return this.lastNumTizi;
-	}
-
-	public int setlastNumTizi(int lntizi) {
-		return this.lastNumTizi = lntizi;
+		return this.lastNumberTizi;
 	}
 
 	public ArrayList<Chain> getRemovedChain() {
 		return removedChain;
 	}
 
-	public void setRemovedChain(ArrayList<Chain> removedChain) {
-		this.removedChain = removedChain;
-	}
-
 	public Point getlastMove() {
 		return this.lastMove;
 	}
 
-	public void setlastMove(Point lm) {
-		this.lastMove = lm;
-	}
-
-	public int getCounter() {
-		return counter;
-	} // end getCounter()
-
-	public void setCounter(int counter) {
-		this.counter = counter;
-	}
-
 	@Override
 	public String toString() {
-		return "Move " + counter + ": " + "[isPass: " + ispass + ", "
+		return "Move " + counter + ": " + "[isPass: " + isPass + ", "
 				+ "lastTiziPosition: " + this.lastTiziPosition + ", "
-				+ "lastNumTizi: " + this.lastNumTizi + ", " + "Last Move: "
+				+ "lastNumberTizi: " + this.lastNumberTizi + ", " + "Last Move: "
 				+ lastMove + "]\n" + "[Stone added: " + added + "]\n"
 				+ "[Chain removed:\n"
 				+ removedChain.toString().replaceAll("],", "]\n") + "]";

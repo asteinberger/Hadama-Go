@@ -12,9 +12,9 @@ public class AlphaBeta {
 	 */
 	private ArrayList<Point> findLegalMoves(int player, GamePlay game) {
 
-		int size = game.getGoboard().getSize();
+		int size = game.getGoBoard().getSize();
 		if (player == 0) {
-			ArrayList<Point> illegalMovesBlack = game.getGoboard()
+			ArrayList<Point> illegalMovesBlack = game.getGoBoard()
 					.getIllegalMovesforBlack();
 			ArrayList<Point> legalMovesBlack = new ArrayList<Point>();
 
@@ -29,7 +29,7 @@ public class AlphaBeta {
 
 		} else {
 
-			ArrayList<Point> illegalMovesWhite = game.getGoboard()
+			ArrayList<Point> illegalMovesWhite = game.getGoBoard()
 					.getIllegalMovesforWhite();
 			ArrayList<Point> legalMovesWhite = new ArrayList<Point>();
 			for (int row = 0; row < size; row++) {
@@ -63,7 +63,7 @@ public class AlphaBeta {
 		Point pBest = new Point();
 
 		if (depthLimit <= depth) {
-			double[] scores = game.getGoboard().getScores();
+			double[] scores = game.getGoBoard().getScores();
 			Pair<Double, Point> pFinal = new Pair<Double, Point>(scores[2],
 					pBest);
 			return pFinal;
@@ -74,16 +74,16 @@ public class AlphaBeta {
 
 			for (int i = 0; i < actions.size(); i++) {
 
-				Point p = new Point(actions.get(i).x, game.getGoboard()
+				Point p = new Point(actions.get(i).x, game.getGoBoard()
 						.getSize() - actions.get(i).y - 1);
 
 				game.setCurrLocation(p);
 				// place stone on the board
-				game.placePieceAlphaBeta(game.getGoboard(), game.getPlayer());
+				game.placePieceAlphaBeta(game.getGoBoard(), game.getPlayer());
 				Pair<Double, Point> pForminValue = minValue(game, alpha, beta,
 						depthLimit, depth + 1);
 
-				game.undoMove(game.getGoboard());
+				game.undoMove(game.getGoBoard());
 
 				if (pForminValue.getLeft() > alpha) {
 					alpha = pForminValue.getLeft();
@@ -113,7 +113,7 @@ public class AlphaBeta {
 		Point pBest = new Point();
 		if (depthLimit <= depth) {
 
-			double[] scores = game.getGoboard().getScores();
+			double[] scores = game.getGoBoard().getScores();
 			Pair<Double, Point> pFinal = new Pair<Double, Point>(scores[2],
 					pBest);
 			return pFinal;
@@ -122,15 +122,15 @@ public class AlphaBeta {
 
 			for (int i = 0; i < actions.size(); i++) {
 
-				Point p = new Point(actions.get(i).x, game.getGoboard()
+				Point p = new Point(actions.get(i).x, game.getGoBoard()
 						.getSize() - actions.get(i).y - 1);
 				game.setCurrLocation(p);
-				game.placePieceAlphaBeta(game.getGoboard(), game.getPlayer());
+				game.placePieceAlphaBeta(game.getGoBoard(), game.getPlayer());
 
 				Pair<Double, Point> pForminValue = this.maxValue(game, alpha,
 						beta, depthLimit, depth + 1);
 
-				game.undoMove(game.getGoboard());
+				game.undoMove(game.getGoBoard());
 
 				if (pForminValue.getLeft() < beta) {
 
