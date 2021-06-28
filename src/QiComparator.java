@@ -4,38 +4,22 @@ import java.util.Comparator;
 public class QiComparator implements Comparator<Qi> {
 
 	@Override
-	public int compare(Qi o1, Qi o2) {
+	public int compare(Qi firstQi, Qi secondQi) {
 
-		Point p1 = new Point(o1.getX(), o1.getY());
-		Point p2 = new Point(o2.getX(), o2.getY());
+		Point firstPoint = new Point(firstQi.getX(), firstQi.getY());
+		Point secondPoint = new Point(secondQi.getX(), secondQi.getY());
 
-		int val1 = 20 * p1.x + p1.y;
-		int val2 = 20 * p2.x + p2.y;
-		int compare = val1 - val2;
+		int firstValue = 20 * firstPoint.x + firstPoint.y;
+		int secondValue = 20 * secondPoint.x + secondPoint.y;
+		int comparison = firstValue - secondValue;
 
-		if (compare < 0)
+		if (comparison < 0)
 			return -1;
-		else if (compare == 0)
+		else if (comparison == 0)
 			return 0;
 		else
 			return 1;
 
 	} // end compare()
-
-	public boolean equals(Qi o1, Qi o2) {
-
-		Point p1 = new Point(o1.getX(), o1.getY());
-		Point p2 = new Point(o2.getX(), o2.getY());
-
-		int val1 = 20 * p1.x + p1.y;
-		int val2 = 20 * p2.x + p2.y;
-		int compare = val1 - val2;
-
-		if (compare == 0)
-			return true;
-		else
-			return false;
-
-	} // end equals()
 
 } // end class

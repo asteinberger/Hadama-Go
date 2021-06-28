@@ -14,130 +14,107 @@ public class Wei extends TreeSet<Stone> {
 	 * are not occupied by an active stone.
 	 */
 
-	private Board goboard;
-	private int weiNum;
+	private GoBoard goBoard;
+	private int weiNumber;
 	static int counterOfWei;
 
-	public Wei(Board b) {
-		this.goboard = b;
-		weiNum = counterOfWei;
+	public Wei(GoBoard goBoard) {
+		this.goBoard = goBoard;
+		weiNumber = counterOfWei;
 		counterOfWei++;
 
 	} // end constructor
 
-	public void addToWei(Stone s) {
+	public void addToWei(Stone stone) {
 		// have to be the same color stone
-		if (!this.contains(s)) {
-			s.setWei(this);
-			this.add(s);
+		if (!this.contains(stone)) {
+			stone.setWei(this);
+			this.add(stone);
 		} // end if
 	} // end addToWei()
 
-	// Check if the stones inside Wei, if the stone not belong to this Wei
-	// anymore then remove it from the Wei
-	public void recheckStones() {
-
-		TreeSet<Stone> toRemove = new TreeSet<Stone>();
-		Iterator<Stone> it = this.iterator();
-		while (it.hasNext()) {
-			Stone s = it.next();
-
-			if (s.getColor() == -1)
-				toRemove.add(s);
-		} // end while
-
-		Iterator<Stone> it2 = toRemove.iterator();
-		while (it2.hasNext()) {
-			Stone s = it2.next();
-			this.remove(s);
-		} // end while
-
-	} // end checkStones()
-
-	public void updateWeis(Stone currentS) {
+	public void updateWeis(Stone currentStone) {
 		// remove the stone not belong to the chain anymore
-		Wei w = new Wei(this.goboard);
-		w = this;
+		Wei wei = this;
 
-		Iterator<Stone> it = this.iterator();
-		while (it.hasNext()) {
-			Stone s = it.next();
-			Point p = s.getLocation();
-			this.goboard.getBoard()[p.x][p.y] = null;
-			this.goboard.getChains().remove(s.getChain());
+		Iterator<Stone> iterator = this.iterator();
+		while (iterator.hasNext()) {
+			Stone stone = iterator.next();
+			Point point = stone.getLocation();
+			this.goBoard.getBoard()[point.x][point.y] = null;
+			this.goBoard.getChains().remove(stone.getChain());
 		}
 
-		this.goboard.getWeis().remove(this);
+		this.goBoard.getWeis().remove(this);
 
 		// Add back all stones back to board
-		w.remove(currentS);
-		Iterator<Stone> it2 = w.iterator();
-		while (it2.hasNext()) {
-			Stone s = it2.next();
-			this.goboard.addStone(s);
+		wei.remove(currentStone);
+		iterator = wei.iterator();
+		while (iterator.hasNext()) {
+			Stone stone = iterator.next();
+			this.goBoard.addStone(stone);
 		}
 
 	} // end checkQis()
 
 	public void yanDetector() {
-		int xMin;
-		int xMax;
-		int yMin = Integer.MAX_VALUE;
-		int yMax = Integer.MIN_VALUE;
-		int color = this.first().getColor();
-		xMin = this.first().getLocation().x;
-		xMax = this.last().getLocation().x;
+		int xMinimum;
+		int xMaximum;
+		int yMinimum = Integer.MAX_VALUE;
+		int yMaximum = Integer.MIN_VALUE;
+		Player player = this.first().getPlayer();
+		xMinimum = this.first().getLocation().x;
+		xMaximum = this.last().getLocation().x;
 
-		Iterator<Stone> findY = this.iterator();
-		while (findY.hasNext()) {
-
-			Stone s = findY.next();
-			int y = s.getLocation().y;
-			if (y >= yMax) {
-				yMax = y;
+		Iterator<Stone> yIterator = this.iterator();
+		while (yIterator.hasNext()) {
+			Stone stone = yIterator.next();
+			int y = stone.getLocation().y;
+			if (y >= yMaximum) {
+				yMaximum = y;
 			}
-			if (y <= yMin) {
-				yMin = y;
+			if (y <= yMinimum) {
+				yMinimum = y;
 			}
 		}
 
-		if (xMax == 8)
-			xMax++;
-		if (yMax == 8)
-			yMax++;
-		if (xMin == 0)
-			xMin--;
-		if (yMin == 0)
-			yMin--;
+		if (xMaximum == 8)
+			xMaximum++;
+		if (yMaximum == 8)
+			yMaximum++;
+		if (xMinimum == 0)
+			xMinimum--;
+		if (yMinimum == 0)
+			yMinimum--;
 
-		for (int i = yMin + 1; i < yMax; i++) {
+		for (int yIndex = yMinimum + 1; yIndex < yMaximum; yIndex++) {
 
-			for (int j = xMin + 1; j < xMax; j++) {
+			for (int xIndex = xMinimum + 1; xIndex < xMaximum; xIndex++) {
 
-				Point p = new Point(j, i);
-				Stone s = this.goboard.getStone(p);
+				Point point = new Point(xIndex, yIndex);
+				Stone stone = this.goBoard.getStone(point);
 
-				if ((s.getColor() != 1) && (s.getColor() != 0)
-						&& (s.getColor() != 3) && (s.getColor() != 4)) {
+				if ((stone.getPlayer() != Player.BLACK) && (stone.getPlayer() != Player.WHITE)
+						&& (stone.getPlayer() != Player.BLACK_TERRITORY) && (stone.getPlayer() != Player.WHITE_TERRITORY)) {
 					// if chain is empty,add it no matter what
 					// if chain is not empty, check if it already became chain
-					if (s.getChain() != null) {
-						if (!s.getChain().isYan()) {
-							if (color == 1) {
-								s.setColor(3);
-								this.goboard.addStone(s);
+					if (stone.getChain() != null) {
+						if (!stone.getChain().isYan()) {
+							if (player == Player.WHITE) {
+								stone.setPlayer(Player.WHITE_TERRITORY);
+								this.goBoard.addStone(stone);
 							} else {
-								s.setColor(4);
-								this.goboard.addStone(s);
+								stone.setPlayer(Player.BLACK_TERRITORY);
+								this.goBoard.addStone(stone);
 							}
 						}
 					} else {
-						if (color == 1) {
-							s.setColor(3);
-							this.goboard.addStone(s);
+						if (player == Player.WHITE) {
+							stone.setPlayer(Player.WHITE_TERRITORY);
+							this.goBoard.addStone(stone);
 						} else {
-							s.setColor(4);
-							this.goboard.addStone(s);
+							stone.setPlayer(Player.BLACK_TERRITORY);
+							this.goBoard.addStone(stone);
 						}
 					}
 				}
@@ -146,6 +123,6 @@ public class Wei extends TreeSet<Stone> {
 	}
 
 	public int getWeiIndex() {
-		return weiNum;
+		return weiNumber;
 	}
 } // end class

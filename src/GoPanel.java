@@ -20,7 +20,7 @@ public class GoPanel extends Panel {
 	 */
 	private static final long serialVersionUID = 4781863948394812333L;
 
-	private Board goBoard;
+	private GoBoard goBoard;
 	private Point location;
 	private Point point;
 	private Point intersection;
@@ -30,18 +30,18 @@ public class GoPanel extends Panel {
 	private static Image lastMove;
 	private static Image cursor;
 	private static Image highlight;
-	private int color = 0;
+	private Player player = Player.BLACK;
 	private int[] verticals;
 	private int[] horizontals;
 	private GamePlay gamePlay;
-	private String mode = "HvH";
-	private int size;
+	private GameMode mode = GameMode.HUMAN_VS_HUMAN;
+	private int boardSize;
 
-	private static Point cellDim = new Point(35, 35);
+	private static Point cellDimensions = new Point(35, 35);
 	private static Point borderTopLeft = new Point(200, 184);
 	private static Point borderBottomRight = new Point(493, 463);
 
-	public GoPanel(Board b, GamePlay gp) throws IOException {
+	public GoPanel(GoBoard goBoard, GamePlay gamePlay) throws IOException {
 
 		GoPanel.background = ImageIO.read(new File("images/board.gif"));
 
@@ -54,64 +54,63 @@ public class GoPanel extends Panel {
 		GoPanel.highlight = ImageIO.read(new File("images/goHighlight.gif"));
 
 		this.setSize(400, 386);
-		// this.setMinimumSize(new Dimension(400, 386));
 
-		this.size = b.getSize();
-		this.location = new Point(0, b.getSize() - 1);
+		this.boardSize = goBoard.getBoardSize();
+		this.location = new Point(0, goBoard.getBoardSize() - 1);
 		this.point = new Point(GoPanel.borderTopLeft.x,
 				GoPanel.borderBottomRight.y);
 
 		this.intersection = new Point(0, 0);
-		this.verticals = new int[b.getSize()];
-		this.horizontals = new int[b.getSize()];
+		this.verticals = new int[goBoard.getBoardSize()];
+		this.horizontals = new int[goBoard.getBoardSize()];
 
-		for (int i = 0; i < b.getSize(); i++) {
-			this.horizontals[i] = GoPanel.borderTopLeft.y
-					+ ((b.getSize() - i - 1) * GoPanel.cellDim.y);
-			this.verticals[i] = GoPanel.borderTopLeft.x
-					+ (i * GoPanel.cellDim.x);
+		for (int index = 0; index < goBoard.getBoardSize(); index++) {
+			this.horizontals[index] = GoPanel.borderTopLeft.y
+					+ ((goBoard.getBoardSize() - index - 1) * GoPanel.cellDimensions.y);
+			this.verticals[index] = GoPanel.borderTopLeft.x
+					+ (index * GoPanel.cellDimensions.x);
 		} // end for
 
-		this.gamePlay = gp;
-		this.goBoard = b;
+		this.gamePlay = gamePlay;
+		this.goBoard = goBoard;
 
 	} // end constructor
 
-	public void paint(Graphics g) {
+	public void paint(Graphics graphics) {
 
-		g.drawImage(GoPanel.background, 0, 0, null);
+		graphics.drawImage(GoPanel.background, 0, 0, null);
 
 		// display pieces on board
-		for (int x = 0; x < this.size; x++) {
+		for (int x = 0; x < this.boardSize; x++) {
 
-			for (int y = 0; y < this.size; y++) {
+			for (int y = 0; y < this.boardSize; y++) {
 
-				Stone st = this.goBoard.getStone(new Point(x, y));
-				Image img = GoPanel.blackStone;
+				Stone stone = this.goBoard.getStone(new Point(x, y));
+				Image image = GoPanel.blackStone;
 
-				if ((st != null) && (st.getChain() != null)
-						&& (st.getColor() == 0) && (!st.getChain().isYan())) {
-					img = GoPanel.blackStone;
+				if ((stone != null) && (stone.getChain() != null)
+						&& (stone.getPlayer() == Player.BLACK) && (!stone.getChain().isYan())) {
+					image = GoPanel.blackStone;
 				}
 
-				else if ((st != null) && (st.getChain() != null)
-						&& (st.getColor() == 1) && (!st.getChain().isYan())) {
-					img = GoPanel.whiteStone;
+				else if ((stone != null) && (stone.getChain() != null)
+						&& (stone.getPlayer() == Player.WHITE) && (!stone.getChain().isYan())) {
+					image = GoPanel.whiteStone;
 				}
 
-				if ((st.getColor() != -2) && (st.getColor() != -1)
-						&& (st.getColor() != 3) && (st.getColor() != 4)
-						&& (st.getColor() != 5) && (st.getChain() != null)
-						&& (!st.getChain().isYan())) {
-					g.drawImage(img, this.verticals[x], this.horizontals[y],
+				if ((stone.getPlayer() != Player.YAN) && (stone.getPlayer() != Player.NOT_A_PLAYER)
+						&& (stone.getPlayer() != Player.BLACK_TERRITORY) && (stone.getPlayer() != Player.WHITE_TERRITORY)
+						&& (stone.getPlayer() != Player.OUTSIDE_THE_BOARD) && (stone.getChain() != null)
+						&& (!stone.getChain().isYan())) {
+					graphics.drawImage(image, this.verticals[x], this.horizontals[y],
 							null);
 				}
 
-				Point p = new Point(x, y);
+				Point point = new Point(x, y);
 
-				if (p.equals(this.gamePlay.getlastMovePosition())) {
+				if (point.equals(this.gamePlay.getlastMovePosition())) {
 
-					g.drawImage(GoPanel.lastMove, this.verticals[x],
+					graphics.drawImage(GoPanel.lastMove, this.verticals[x],
 							this.horizontals[y], null);
 				}
 
@@ -119,26 +118,26 @@ public class GoPanel extends Panel {
 
 		} // end for
 		
-		Font f = new Font("Arial Bold", Font.PLAIN, 32);
-		g.setFont(f);
+		Font font = new Font("Arial Bold", Font.PLAIN, 32);
+		graphics.setFont(font);
 
-		if (this.color == 0)
-			g.drawImage(GoPanel.highlight, 543, 193, null);
+		if (this.player == Player.BLACK)
+			graphics.drawImage(GoPanel.highlight, 543, 193, null);
 		else
-			g.drawImage(GoPanel.highlight, 543, 293, null);
+			graphics.drawImage(GoPanel.highlight, 543, 293, null);
 
-		g.drawImage(GoPanel.blackStone, 560, 200, null);
-		g.drawString(Double.toString(this.goBoard.getScores()[0]), 617, 230);
+		graphics.drawImage(GoPanel.blackStone, 560, 200, null);
+		graphics.drawString(Double.toString(this.goBoard.getScores()[0]), 617, 230);
 
-		g.drawImage(GoPanel.whiteStone, 560, 300, null);
-		g.drawString(Double.toString(this.goBoard.getScores()[1]), 617, 330);
+		graphics.drawImage(GoPanel.whiteStone, 560, 300, null);
+		graphics.drawString(Double.toString(this.goBoard.getScores()[1]), 617, 330);
 
-		g.drawImage(GoPanel.cursor, this.point.x, this.point.y, null);
+		graphics.drawImage(GoPanel.cursor, this.point.x, this.point.y, null);
 
 	} // end paint()
 
 	public void moveUp() {
-		if (this.intersection.y < this.size - 1) {
+		if (this.intersection.y < this.boardSize - 1) {
 			this.intersection.y++;
 			this.point.y = this.horizontals[this.intersection.y];
 			this.location.y--;
@@ -150,7 +149,7 @@ public class GoPanel extends Panel {
 	} // end moveUp()
 
 	public void moveRight() {
-		if (this.intersection.x < this.size - 1) {
+		if (this.intersection.x < this.boardSize - 1) {
 			this.intersection.x++;
 			this.point.x = this.verticals[this.intersection.x];
 			this.location.x++;
@@ -188,22 +187,6 @@ public class GoPanel extends Panel {
 	/*
 	 * getters and setters
 	 */
-	public Image getBlackStone() {
-		return GoPanel.blackStone;
-	} // end getBlackStone()
-
-	public void setBlackStone(Image blackStone) {
-		GoPanel.blackStone = blackStone;
-	} // end setBlackStone()
-
-	public Image getWhiteStone() {
-		return GoPanel.whiteStone;
-	} // end getWhiteStone()
-
-	public void setWhiteStone(Image whiteStone) {
-		GoPanel.whiteStone = whiteStone;
-	} // end setWhiteStone()
-
 	public Point getLocation() {
 		return this.location;
 	} // end getLocation()
@@ -212,36 +195,8 @@ public class GoPanel extends Panel {
 		this.location = location;
 	} // end setLocation()
 
-	public static Point getCell() {
-		return GoPanel.cellDim;
-	} // end getCell()
-
-	public static void setCell(Point cell) {
-		GoPanel.cellDim = cell;
-	} // end setCell()
-
-	public static Point getBorderTopLeft() {
-		return GoPanel.borderTopLeft;
-	} // end getBorderTopLeft()
-
-	public static void setBorderTopLeft(Point borderTopLeft) {
-		GoPanel.borderTopLeft = borderTopLeft;
-	} // end setBorderTopLeft()
-
-	public static Point getBorderBottomRight() {
-		return GoPanel.borderBottomRight;
-	} // end getBorderBottomRight()
-
-	public static void setBorderBottomRight(Point borderBottomRight) {
-		GoPanel.borderBottomRight = borderBottomRight;
-	} // end setBorderBottomRight()
-
-	public int getColor() {
-		return this.color;
-	} // end getColor()
-
-	public void setColor(int color) {
-		this.color = color;
+	public void setPlayer(Player player) {
+		this.player = player;
 	} // end setColor()
 
 	public Point getPoint() {
@@ -251,53 +206,5 @@ public class GoPanel extends Panel {
 	public void setPoint(Point point) {
 		this.point = point;
 	} // end setPoint()
-
-	public Point getIntersection() {
-		return this.intersection;
-	} // end getIntersection()
-
-	public void setIntersection(Point intersection) {
-		this.intersection = intersection;
-	} // end setIntersection()
-
-	public GamePlay getGamePlay() {
-		return this.gamePlay;
-	} // end getGamePlay()
-
-	public void setGamePlay(GamePlay gamePlay) {
-		this.gamePlay = gamePlay;
-	} // end setGamePlay()
-
-	public static Image getBlackCursor() {
-		return GoPanel.cursor;
-	} // end getBlackCursor()
-
-	public static void setBlackCursor(Image blackCursor) {
-		GoPanel.cursor = blackCursor;
-	} // end setBlackCursor()
-
-	public static Image getlastMove() {
-		return GoPanel.lastMove;
-	}
-
-	public static void setlastMove(Image lastMove) {
-		GoPanel.lastMove = lastMove;
-	}
-
-	public String getMode() {
-		return mode;
-	}
-
-	public void setMode(String mode) {
-		this.mode = mode;
-	}
-
-	public static Image getHighlight() {
-		return highlight;
-	}
-
-	public static void setHighlight(Image highlight) {
-		GoPanel.highlight = highlight;
-	}
 	
 } // end class

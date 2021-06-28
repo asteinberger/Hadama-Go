@@ -7,172 +7,177 @@ public class QLearning {
 
 	private final Random random = new Random(System.currentTimeMillis());
 	private double epsilon = 0.1;
-	private double qPrev = 0.0;
+	private double previousQ = 0.0;
 	private double learnRate = 0.001;
 	private double discountFactor = 0.01;
 
-	public QLearning(double lr, double df, double ep) {
-		this.learnRate = lr;
-		this.discountFactor = df;
-		this.epsilon = ep;
+	public QLearning(double learningRate, double discountFactor, double epsilon) {
+		this.learnRate = learningRate;
+		this.discountFactor = discountFactor;
+		this.epsilon = epsilon;
 	} // end constructor
 
 	public boolean epsilonGreedy() {
-		boolean[] select = { true, false };
+		boolean[] result = { true, false };
 		double[] weight = { this.epsilon, 1.0 - this.epsilon };
-		double rand = this.random.nextDouble();
-		double s = 0; // temp cumulative sum
-		int i = 0;
-		while ((s += weight[i]) < rand)
-			i++;
-		boolean isRandom = select[i];
-		return isRandom;
+		double randomDouble = this.random.nextDouble();
+		double temporaryCumulativeSum = 0; // temp cumulative sum
+		int index = 0;
+		while ((temporaryCumulativeSum += weight[index]) < randomDouble) {
+			index++;
+		}
+		return result[index];
 	} // end epsilonGreedy()
 
 	/**
 	 * We find all legalmoves for both players
 	 * 
 	 * @param player
-	 * @param game
+	 * @param gamePlay
 	 * @return ArrayList<Point>
 	 */
-	public ArrayList<Point> findLegalMoves(int player, GamePlay game) {
+	public ArrayList<Point> findLegalMoves(Player player, GamePlay gamePlay) {
 
-		int size = game.getGoBoard().getSize();
-		if (player == 0) {
-			ArrayList<Point> illegalMovesBlack = game.getGoBoard()
-					.getIllegalMovesforBlack();
-			ArrayList<Point> legalMovesBlack = new ArrayList<Point>();
+		int boardSize = gamePlay.getGoBoard().getBoardSize();
+		if (player == Player.BLACK) {
+			ArrayList<Point> illegalMovesForBlack = gamePlay.getGoBoard()
+					.getIllegalMovesForBlack();
+			ArrayList<Point> legalMovesForBlack = new ArrayList<Point>();
 
-			for (int row = 0; row < size; row++) {
-				for (int col = 0; col < size; col++) {
-					Point p = new Point(col, row);
-					if (!illegalMovesBlack.contains(p))
-						legalMovesBlack.add(p);
+			for (int row = 0; row < boardSize; row++) {
+				for (int column = 0; column < boardSize; column++) {
+					Point point = new Point(column, row);
+					if (!illegalMovesForBlack.contains(point))
+						legalMovesForBlack.add(point);
 				}
 			}
-			return legalMovesBlack;
+			return legalMovesForBlack;
 
 		} else {
 
-			ArrayList<Point> illegalMovesWhite = game.getGoBoard()
-					.getIllegalMovesforWhite();
-			ArrayList<Point> legalMovesWhite = new ArrayList<Point>();
-			for (int row = 0; row < size; row++) {
-				for (int col = 0; col < size; col++) {
-					Point p = new Point(col, row);
-					if (!illegalMovesWhite.contains(p)) {
-						legalMovesWhite.add(p);
+			ArrayList<Point> illegalMovesForWhite = gamePlay.getGoBoard()
+					.getIllegalMovesForWhite();
+			ArrayList<Point> legalMovesForWhite = new ArrayList<Point>();
+			for (int row = 0; row < boardSize; row++) {
+				for (int column = 0; column < boardSize; column++) {
+					Point point = new Point(column, row);
+					if (!illegalMovesForWhite.contains(point)) {
+						legalMovesForWhite.add(point);
 					}
 				}
 			}
 
-			return legalMovesWhite;
+			return legalMovesForWhite;
 		}
 
 	} // end findLegalMoves()
 
-	public Point iterateValue(int player, GamePlay game) throws Exception {
+	public Point iterateValue(Player player, GamePlay gamePlay) throws Exception {
 
-		String code = game.getGoBoard().getCodes();
-		ArrayList<Point> moves = this.findLegalMoves(player, game);
+		String code = gamePlay.getGoBoard().getCodes();
+		ArrayList<Point> moves = this.findLegalMoves(player, gamePlay);
 
 		if (moves.size() == 0) {
 			return new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
 		} // end Point
 
-		NeuralNetwork network = new NeuralNetwork(162, 40, 2,
-				"networkWeights.txt");
+		NeuralNetwork neuralNetwork = new NeuralNetwork(
+				162,
+				40,
+				2,
+				"networkWeights.txt"
+		);
 
 		String playerCode = "00";
-		if (player == 0)
+		if (player == Player.BLACK)
 			playerCode = "01";
-		else if (player == 1)
+		else if (player == Player.WHITE)
 			playerCode = "10";
 
-		network.setInputs(code);
-		double[] out = network.getOutputs();
-		double q = this.qValue(player, out);
+		neuralNetwork.setInputs(code);
+		double[] outputs = neuralNetwork.getOutputs();
+		double q = this.qValue(player, outputs);
 
-		double[] outMax = new double[out.length];
-		Arrays.fill(outMax, 1.0);
+		double[] outputsMaximum = new double[outputs.length];
+		Arrays.fill(outputsMaximum, 1.0);
 		Point bestMove = moves.get(0);
-		double qMax = Double.NEGATIVE_INFINITY;
+		double qMaximum = Double.NEGATIVE_INFINITY;
 
-		ArrayList<ArrayList<Double>> outMaxes = new ArrayList<ArrayList<Double>>();
+		ArrayList<ArrayList<Double>> outputMaximums = new ArrayList<ArrayList<Double>>();
 		ArrayList<Point> bestMoves = new ArrayList<Point>();
-		ArrayList<Double> qMaxes = new ArrayList<Double>();
+		ArrayList<Double> qMaximums = new ArrayList<Double>();
 
-		for (int i = 0; i < moves.size(); i++) {
+		for (int index = 0; index < moves.size(); index++) {
 
-			Point m = moves.get(i);
-			Point move = new Point(m.y, m.x);
-			String moveCode = new String(code);
-			int start = (18 * move.x) + (2 * move.y);
+			Point move = moves.get(index);
+			Point moveReverse = new Point(move.y, move.x);
+			String moveCode = code;
+			int start = (18 * moveReverse.x) + (2 * moveReverse.y);
 
 			String before = moveCode.substring(0, start);
 			String after = moveCode.substring(start + 2);
 
 			moveCode = before.concat(playerCode).concat(after);
 
-			network.setInputs(moveCode);
-			double[] outNext = network.getOutputs();
-			double qNext = this.qValue(player, outNext);
+			neuralNetwork.setInputs(moveCode);
+			double[] neuralNetworkOutputs = neuralNetwork.getOutputs();
+			double qOfNeuralNetworkOutputs = this.qValue(player, neuralNetworkOutputs);
 
-			if (qNext > qMax) {
+			if (qOfNeuralNetworkOutputs > qMaximum) {
 
-				qMax = qNext;
-				qMaxes.clear();
-				qMaxes.add(qNext);
+				qMaximum = qOfNeuralNetworkOutputs;
+				qMaximums.clear();
+				qMaximums.add(qOfNeuralNetworkOutputs);
 
-				outMaxes.clear();
-				ArrayList<Double> maxes = new ArrayList<Double>();
-				for (int j = 0; j < outMax.length; j++) {
-					outMax[j] = outNext[j];
-					maxes.add(outNext[j]);
+				outputMaximums.clear();
+				ArrayList<Double> maximums = new ArrayList<Double>();
+				for (int outputsIndex = 0; outputsIndex < outputsMaximum.length; outputsIndex++) {
+					outputsMaximum[outputsIndex] = neuralNetworkOutputs[outputsIndex];
+					maximums.add(neuralNetworkOutputs[outputsIndex]);
 				} // end for
-				outMaxes.add(maxes);
+				outputMaximums.add(maximums);
 
-				bestMove = new Point(move);
+				bestMove = new Point(moveReverse);
 				bestMoves.clear();
 				bestMoves.add(bestMove);
 
-			} else if (qNext == qMax) {
+			} else if (qOfNeuralNetworkOutputs == qMaximum) {
 
-				qMax = qNext;
-				qMaxes.add(qNext);
+				qMaximum = qOfNeuralNetworkOutputs;
+				qMaximums.add(qOfNeuralNetworkOutputs);
 
-				ArrayList<Double> maxes = new ArrayList<Double>();
-				for (int j = 0; j < outMax.length; j++) {
-					outMax[j] = outNext[j];
-					maxes.add(outNext[j]);
+				ArrayList<Double> maximums = new ArrayList<Double>();
+				for (int outputsIndex = 0; outputsIndex < outputsMaximum.length; outputsIndex++) {
+					outputsMaximum[outputsIndex] = neuralNetworkOutputs[outputsIndex];
+					maximums.add(neuralNetworkOutputs[outputsIndex]);
 				} // end for
-				outMaxes.add(maxes);
+				outputMaximums.add(maximums);
 
-				bestMove = new Point(move);
+				bestMove = new Point(moveReverse);
 				bestMoves.add(bestMove);
 
 			} // end if
 
 		} // end for
 
-		if (qMaxes.size() > 1) {
+		if (qMaximums.size() > 1) {
 
-			int rand = this.random.nextInt(qMaxes.size());
-			ArrayList<Double> mo = outMaxes.get(rand);
-			for (int i = 0; i < outMax.length; i++)
-				outMax[i] = mo.get(i);
-			bestMove = bestMoves.get(rand);
-			qMax = qMaxes.get(rand);
+			int randomInteger = this.random.nextInt(qMaximums.size());
+			ArrayList<Double> randomOutputMaximum = outputMaximums.get(randomInteger);
+			for (int index = 0; index < outputsMaximum.length; index++) {
+				outputsMaximum[index] = randomOutputMaximum.get(index);
+			}
+			bestMove = bestMoves.get(randomInteger);
+			qMaximum = qMaximums.get(randomInteger);
 
 		} // end if
 
 		boolean isRandom = this.epsilonGreedy();
 		if (isRandom) {
 
-			int rand = this.random.nextInt(moves.size());
-			bestMove = moves.get(rand);
-			String moveCode = new String(code);
+			int randomInteger = this.random.nextInt(moves.size());
+			bestMove = moves.get(randomInteger);
+			String moveCode = code;
 			int start = (18 * bestMove.x) + (2 * bestMove.y);
 
 			String before = moveCode.substring(0, start);
@@ -180,28 +185,28 @@ public class QLearning {
 
 			moveCode = before.concat(playerCode).concat(after);
 
-			network.setInputs(moveCode);
-			double[] randOut = network.getOutputs();
-			qMax = this.qValue(player, randOut);
+			neuralNetwork.setInputs(moveCode);
+			double[] randomOutputs = neuralNetwork.getOutputs();
+			qMaximum = this.qValue(player, randomOutputs);
 
 		} // end if
 
-		double qUpdate = q + this.learnRate
-				* (this.qPrev + (this.discountFactor * qMax) - q);
+		double updatedQ = q + this.learnRate
+				* (this.previousQ + (this.discountFactor * qMaximum) - q);
 
-		this.qPrev = qUpdate;
+		this.previousQ = updatedQ;
 
-		Point best = new Point(bestMove.y, bestMove.x);
+		Point bestMoveLocation = new Point(bestMove.y, bestMove.x);
 
-		return best;
+		return bestMoveLocation;
 
 	} // end QLearning()
 
-	public double qValue(int player, double[] out) {
+	public double qValue(Player player, double[] out) {
 
 		double q = 0;
 
-		if (player == 0) { // black player
+		if (player == Player.BLACK) { // black player
 
 			// black wins
 			if ((Math.round(out[0]) == 0.0) && (Math.round(out[1]) == 0.0))
@@ -216,7 +221,7 @@ public class QLearning {
 			else if ((Math.round(out[0]) == 1.0) && (Math.round(out[1]) == 1.0))
 				q = -20;
 
-		} else if (player == 1) { // white player
+		} else if (player == Player.WHITE) { // white player
 
 			// black wins
 			if ((Math.round(out[0]) == 0.0) && (Math.round(out[1]) == 0.0))
@@ -236,41 +241,5 @@ public class QLearning {
 		return q;
 
 	} // end qValue()
-
-	public double getqPrev() {
-		return qPrev;
-	}
-
-	public void setqPrev(double qPrev) {
-		this.qPrev = qPrev;
-	}
-
-	public double getLearnRate() {
-		return learnRate;
-	}
-
-	public void setLearnRate(double learnRate) {
-		this.learnRate = learnRate;
-	}
-
-	public double getDiscountFactor() {
-		return discountFactor;
-	}
-
-	public void setDiscountFactor(double discountFactor) {
-		this.discountFactor = discountFactor;
-	}
-
-	public double getEpsilon() {
-		return epsilon;
-	}
-
-	public void setEpsilon(double epsilon) {
-		this.epsilon = epsilon;
-	}
-
-	public Random getRandom() {
-		return random;
-	}
 
 } // end class

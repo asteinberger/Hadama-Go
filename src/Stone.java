@@ -4,12 +4,12 @@ import java.awt.Point;
  * Stone.java - Used to keep track of pieces on the board
  * 
  * @author Haoran Ma <mahaoran1020@gmail.com>, Adam Steinberger
- *         <steinz08@gmail.com>
+ *         <adam@akmaz.io>
  */
 
 public class Stone implements Comparable<Stone>, Cloneable {
 
-	private static StoneComparator sComp = new StoneComparator();
+	private static StoneComparator comparator = new StoneComparator();
 
 	// color -2 represents grey (Yan).
 	// color -1 represents empty
@@ -18,173 +18,182 @@ public class Stone implements Comparable<Stone>, Cloneable {
 	// color 3 represent black territory
 	// color 4 represent white territory
 
-	private int color;
+	private Player player;
 	private int value = 0;
-	private int belongto;
+	private Player belongsTo;
 	private boolean isYan = false;
 	private boolean isZhenYan = false;
 	private boolean isJiaYan = false;
 
-	private Stone next = null;
+	private Stone nextStone = null;
 	private Chain chain = null;
 	private Wei wei = null;
 	private Point location = new Point(0, 0);
 
 	// initial an empty Stone for deleting purpose
 	public Stone() {
-		this.color = -1;
-		this.belongto = -1;
+		this.player = Player.NOT_A_PLAYER;
+		this.belongsTo = Player.NOT_A_PLAYER;
 	} // end constructor
 
-	public Stone(int c, Point l) {
-		this.color = c;
-		this.location = l;
-		this.belongto = c;
+	public Stone(Player player, Point location) {
+		this.player = player;
+		this.location = location;
+		this.belongsTo = player;
 	} // end constructor
 
-	public Stone(Point l) {
-		this.location = l;
-		this.color = -1;
-		this.belongto = -1;
+	public Stone(Point location) {
+		this.location = location;
+		this.player = Player.NOT_A_PLAYER;
+		this.belongsTo = Player.NOT_A_PLAYER;
 	} // end constructor
 
 	// we are able to clone the stone()
 	public Object clone() {
-		Stone o = null;
+		Stone stone = null;
 		try {
-			o = (Stone) super.clone();
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
+			stone = (Stone) super.clone();
+		} catch (CloneNotSupportedException cloneNotSupportedException) {
+			cloneNotSupportedException.printStackTrace();
 		}
-		return o;
+		return stone;
 	}
 
-	public int[] checkQi(Stone[][] b) {
+	public Player[] checkQi(Stone[][] stonesOnTheBoard) {
 
 		int x = this.location.x;
 		int y = this.location.y;
-		int size = b.length;
+		int boardSize = stonesOnTheBoard.length;
 
 		// { top, right, bottom, left, top-left, top-right, bottom-right,
 		// bottom-left }
-		int[] result = { -1, -1, -1, -1, -1, -1, -1, -1 };
+		Player[] qis = {
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER
+		};
 
 		// top
-		if ((y < size - 1) && (b[x][y + 1] != null))
-			result[0] = b[x][y + 1].getColor();
+		if ((y < boardSize - 1) && (stonesOnTheBoard[x][y + 1] != null))
+			qis[0] = stonesOnTheBoard[x][y + 1].getPlayer();
 		// right
-		if ((x < size - 1) && (b[x + 1][y] != null))
-			result[1] = b[x + 1][y].getColor();
+		if ((x < boardSize - 1) && (stonesOnTheBoard[x + 1][y] != null))
+			qis[1] = stonesOnTheBoard[x + 1][y].getPlayer();
 		// bottom
-		if ((y > 0) && (b[x][y - 1] != null))
-			result[2] = b[x][y - 1].getColor();
+		if ((y > 0) && (stonesOnTheBoard[x][y - 1] != null))
+			qis[2] = stonesOnTheBoard[x][y - 1].getPlayer();
 		// left
-		if ((x > 0) && (b[x - 1][y] != null))
-			result[3] = b[x - 1][y].getColor();
+		if ((x > 0) && (stonesOnTheBoard[x - 1][y] != null))
+			qis[3] = stonesOnTheBoard[x - 1][y].getPlayer();
 
 		// top-left
-		if ((y < size - 1) && (x > 0) && (b[x - 1][y + 1] != null))
-			result[4] = b[x - 1][y + 1].getColor();
+		if ((y < boardSize - 1) && (x > 0) && (stonesOnTheBoard[x - 1][y + 1] != null))
+			qis[4] = stonesOnTheBoard[x - 1][y + 1].getPlayer();
 		// top-right
-		if ((y < size - 1) && (x < size - 1) && (b[x + 1][y + 1] != null))
-			result[5] = b[x + 1][y + 1].getColor();
+		if ((y < boardSize - 1) && (x < boardSize - 1) && (stonesOnTheBoard[x + 1][y + 1] != null))
+			qis[5] = stonesOnTheBoard[x + 1][y + 1].getPlayer();
 		// bottom-right
-		if ((y > 0) && (x < size - 1) && (b[x + 1][y - 1] != null))
-			result[6] = b[x + 1][y - 1].getColor();
+		if ((y > 0) && (x < boardSize - 1) && (stonesOnTheBoard[x + 1][y - 1] != null))
+			qis[6] = stonesOnTheBoard[x + 1][y - 1].getPlayer();
 		// bottom-left
-		if ((y > 0) && (x > 0) && (b[x - 1][y - 1] != null))
-			result[7] = b[x - 1][y - 1].getColor();
+		if ((y > 0) && (x > 0) && (stonesOnTheBoard[x - 1][y - 1] != null))
+			qis[7] = stonesOnTheBoard[x - 1][y - 1].getPlayer();
 
-		return result;
+		return qis;
 	} // end checkQi()
 
-	public Wei[] checkWeis(Stone[][] b) {
+	public Wei[] checkWeis(Stone[][] stonesOnTheBoard) {
 
 		int x = this.location.x;
 		int y = this.location.y;
-		int size = b.length;
+		int size = stonesOnTheBoard.length;
 
 		// { top, right, bottom, left, top-left, top-right, bottom-right,
 		// bottom-left, center }
-		Wei[] result = { null, null, null, null, null, null, null, null, null };
+		Wei[] weis = { null, null, null, null, null, null, null, null, null };
 
 		// top
-		if ((y < size - 1) && (b[x][y + 1] != null))
-			result[0] = b[x][y + 1].getWei();
+		if ((y < size - 1) && (stonesOnTheBoard[x][y + 1] != null))
+			weis[0] = stonesOnTheBoard[x][y + 1].getWei();
 		// right
-		if ((x < size - 1) && (b[x + 1][y] != null))
-			result[1] = b[x + 1][y].getWei();
+		if ((x < size - 1) && (stonesOnTheBoard[x + 1][y] != null))
+			weis[1] = stonesOnTheBoard[x + 1][y].getWei();
 		// bottom
-		if ((y > 0) && (b[x][y - 1] != null))
-			result[2] = b[x][y - 1].getWei();
+		if ((y > 0) && (stonesOnTheBoard[x][y - 1] != null))
+			weis[2] = stonesOnTheBoard[x][y - 1].getWei();
 		// left
-		if ((x > 0) && (b[x - 1][y] != null))
-			result[3] = b[x - 1][y].getWei();
+		if ((x > 0) && (stonesOnTheBoard[x - 1][y] != null))
+			weis[3] = stonesOnTheBoard[x - 1][y].getWei();
 
 		// top-left
-		if ((y < size - 1) && (x > 0) && (b[x - 1][y + 1] != null))
-			result[4] = b[x - 1][y + 1].getWei();
+		if ((y < size - 1) && (x > 0) && (stonesOnTheBoard[x - 1][y + 1] != null))
+			weis[4] = stonesOnTheBoard[x - 1][y + 1].getWei();
 		// top-right
-		if ((x < size - 1) && (y < size - 1) && (b[x + 1][y + 1] != null))
-			result[5] = b[x + 1][y + 1].getWei();
+		if ((x < size - 1) && (y < size - 1) && (stonesOnTheBoard[x + 1][y + 1] != null))
+			weis[5] = stonesOnTheBoard[x + 1][y + 1].getWei();
 		// bottom-right
-		if ((y > 0) && (x < size - 1) && (b[x + 1][y - 1] != null))
-			result[6] = b[x + 1][y - 1].getWei();
+		if ((y > 0) && (x < size - 1) && (stonesOnTheBoard[x + 1][y - 1] != null))
+			weis[6] = stonesOnTheBoard[x + 1][y - 1].getWei();
 		// bottom-left
-		if ((y > 0) && (x > 0) && (b[x - 1][y - 1] != null))
-			result[7] = b[x - 1][y - 1].getWei();
+		if ((y > 0) && (x > 0) && (stonesOnTheBoard[x - 1][y - 1] != null))
+			weis[7] = stonesOnTheBoard[x - 1][y - 1].getWei();
 
 		// center
-		if ((b[x][y] != null))
-			result[8] = b[x][y].getWei();
+		if ((stonesOnTheBoard[x][y] != null))
+			weis[8] = stonesOnTheBoard[x][y].getWei();
 
-		return result;
+		return weis;
 
 	}
 
-	public Chain[] checkChains(Stone[][] b) {
+	public Chain[] checkChains(Stone[][] stonesOnTheBoard) {
 
 		int x = this.location.x;
 		int y = this.location.y;
 
-		int size = b.length;
+		int boardSize = stonesOnTheBoard.length;
 
 		// { top, right, bottom, left, top-left, top-right, bottom-right,center
 		// bottom-left }
-		Chain[] result = { null, null, null, null, null, null, null, null, null };
+		Chain[] chains = { null, null, null, null, null, null, null, null, null };
 
 		// top
-		if ((y < size - 1) && (b[x][y + 1] != null))
-			result[0] = b[x][y + 1].getChain();
+		if ((y < boardSize - 1) && (stonesOnTheBoard[x][y + 1] != null))
+			chains[0] = stonesOnTheBoard[x][y + 1].getChain();
 		// right
-		if ((x < size - 1) && (b[x + 1][y] != null))
-			result[1] = b[x + 1][y].getChain();
+		if ((x < boardSize - 1) && (stonesOnTheBoard[x + 1][y] != null))
+			chains[1] = stonesOnTheBoard[x + 1][y].getChain();
 		// bottom
-		if ((y > 0) && (b[x][y - 1] != null))
-			result[2] = b[x][y - 1].getChain();
+		if ((y > 0) && (stonesOnTheBoard[x][y - 1] != null))
+			chains[2] = stonesOnTheBoard[x][y - 1].getChain();
 		// left
-		if ((x > 0) && (b[x - 1][y] != null))
-			result[3] = b[x - 1][y].getChain();
+		if ((x > 0) && (stonesOnTheBoard[x - 1][y] != null))
+			chains[3] = stonesOnTheBoard[x - 1][y].getChain();
 
 		// top-left
-		if ((y < size - 1) && (x > 0) && (b[x - 1][y + 1] != null))
-			result[4] = b[x - 1][y + 1].getChain();
+		if ((y < boardSize - 1) && (x > 0) && (stonesOnTheBoard[x - 1][y + 1] != null))
+			chains[4] = stonesOnTheBoard[x - 1][y + 1].getChain();
 		// top-right
-		if ((x < size - 1) && (y < size - 1) && (b[x + 1][y + 1] != null))
-			result[5] = b[x + 1][y + 1].getChain();
+		if ((x < boardSize - 1) && (y < boardSize - 1) && (stonesOnTheBoard[x + 1][y + 1] != null))
+			chains[5] = stonesOnTheBoard[x + 1][y + 1].getChain();
 		// bottom-right
-		if ((y > 0) && (x < size - 1) && (b[x + 1][y - 1] != null))
-			result[6] = b[x + 1][y - 1].getChain();
+		if ((y > 0) && (x < boardSize - 1) && (stonesOnTheBoard[x + 1][y - 1] != null))
+			chains[6] = stonesOnTheBoard[x + 1][y - 1].getChain();
 		// bottom-left
-		if ((y > 0) && (x > 0) && (b[x - 1][y - 1] != null))
-			result[7] = b[x - 1][y - 1].getChain();
+		if ((y > 0) && (x > 0) && (stonesOnTheBoard[x - 1][y - 1] != null))
+			chains[7] = stonesOnTheBoard[x - 1][y - 1].getChain();
 		// center
-		if (b[x][y] != null)
-			result[8] = b[x][y].getChain();
-		return result;
+		if (stonesOnTheBoard[x][y] != null)
+			chains[8] = stonesOnTheBoard[x][y].getChain();
+		return chains;
 	} // end checkChains()
 
-	public int[] checkQiforYan(Stone[][] b) {
+	public Player[] checkQiForYan(Stone[][] stonesOnTheBoard) {
 
 		// -1 represents empty
 		// 0 represent black player stone
@@ -193,191 +202,175 @@ public class Stone implements Comparable<Stone>, Cloneable {
 		// 5 represent outside the board
 		int x = this.location.x;
 		int y = this.location.y;
-		int size = b.length;
+		int boardSize = stonesOnTheBoard.length;
 
 		// { top, right, bottom, left, top-left, top-right, bottom-right,
 		// bottom-left }
-		int[] result = { -1, -1, -1, -1, -1, -1, -1, -1 };
+		Player[] yans = {
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER,
+				Player.NOT_A_PLAYER
+		};
 
 		// top
-		if (y < size - 1) {
-			if (b[x][y + 1] != null) {
-
-				if (!b[x][y + 1].isYan) {
-					result[0] = b[x][y + 1].getColor();
+		if (y < boardSize - 1) {
+			if (stonesOnTheBoard[x][y + 1] != null) {
+				if (!stonesOnTheBoard[x][y + 1].isYan) {
+					yans[0] = stonesOnTheBoard[x][y + 1].getPlayer();
 				} else {
-					if (b[x][y + 1].getChain().getChainIndex() == this
+					if (stonesOnTheBoard[x][y + 1].getChain().getChainIndex() == this
 							.getChain().getChainIndex()) {
-						result[0] = 2;
+						yans[0] = Player.THE_SAME_YAN;
 					} else {
-						result[0] = -1;
+						yans[0] = Player.NOT_A_PLAYER;
 					}
 				}
 			}
-
 		} else {
-			result[0] = 5;
-
+			yans[0] = Player.OUTSIDE_THE_BOARD;
 		}
 		// right
-		if (x < size - 1) {
-			if (b[x + 1][y] != null) {
-				if (!b[x + 1][y].isYan) {
-					result[1] = b[x + 1][y].getColor();
+		if (x < boardSize - 1) {
+			if (stonesOnTheBoard[x + 1][y] != null) {
+				if (!stonesOnTheBoard[x + 1][y].isYan) {
+					yans[1] = stonesOnTheBoard[x + 1][y].getPlayer();
 				} else {
 
-					if (b[x + 1][y].getChain().getChainIndex() == this
+					if (stonesOnTheBoard[x + 1][y].getChain().getChainIndex() == this
 							.getChain().getChainIndex()) {
-						result[1] = 2;
+						yans[1] = Player.THE_SAME_YAN;
 					} else {
-						result[1] = -1;
+						yans[1] = Player.NOT_A_PLAYER;
 					}
 
 				}
 			}
 		} else {
-			result[1] = 5;
+			yans[1] = Player.OUTSIDE_THE_BOARD;
 		}
 		// bottom
 		if (y > 0) {
-			if (b[x][y - 1] != null) {
-				if (!b[x][y - 1].isYan) {
-					result[2] = b[x][y - 1].getColor();
+			if (stonesOnTheBoard[x][y - 1] != null) {
+				if (!stonesOnTheBoard[x][y - 1].isYan) {
+					yans[2] = stonesOnTheBoard[x][y - 1].getPlayer();
 				} else {
-
-					if (b[x][y - 1].getChain().getChainIndex() == this
+					if (stonesOnTheBoard[x][y - 1].getChain().getChainIndex() == this
 							.getChain().getChainIndex()) {
-						result[2] = 2;
+						yans[2] = Player.THE_SAME_YAN;
 					} else {
-						result[2] = -1;
+						yans[2] = Player.NOT_A_PLAYER;
 					}
-
 				}
 			}
 
 		} else {
-			result[2] = 5;
+			yans[2] = Player.OUTSIDE_THE_BOARD;
 		}
 		// left
 		if (x > 0) {
-			if (b[x - 1][y] != null) {
-				if (!b[x - 1][y].isYan) {
-					result[3] = b[x - 1][y].getColor();
+			if (stonesOnTheBoard[x - 1][y] != null) {
+				if (!stonesOnTheBoard[x - 1][y].isYan) {
+					yans[3] = stonesOnTheBoard[x - 1][y].getPlayer();
 				} else {
-
-					if (b[x - 1][y].getChain().getChainIndex() == this
+					if (stonesOnTheBoard[x - 1][y].getChain().getChainIndex() == this
 							.getChain().getChainIndex()) {
-						result[3] = 2;
+						yans[3] = Player.THE_SAME_YAN;
 					} else {
-						result[3] = -1;
+						yans[3] = Player.NOT_A_PLAYER;
 					}
-
 				}
 			}
 		} else {
-			result[3] = 5;
+			yans[3] = Player.OUTSIDE_THE_BOARD;
 		}
 
 		// top-left
-		if ((y < size - 1) && (x > 0)) {
-			if (b[x - 1][y + 1] != null) {
-				if (!b[x - 1][y + 1].isYan) {
-					result[4] = b[x - 1][y + 1].getColor();
+		if ((y < boardSize - 1) && (x > 0)) {
+			if (stonesOnTheBoard[x - 1][y + 1] != null) {
+				if (!stonesOnTheBoard[x - 1][y + 1].isYan) {
+					yans[4] = stonesOnTheBoard[x - 1][y + 1].getPlayer();
 				} else {
 
-					if (b[x - 1][y + 1].getChain().getChainIndex() == this
+					if (stonesOnTheBoard[x - 1][y + 1].getChain().getChainIndex() == this
 							.getChain().getChainIndex()) {
-						result[4] = 2;
+						yans[4] = Player.THE_SAME_YAN;
 					} else {
-						result[4] = -1;
+						yans[4] = Player.NOT_A_PLAYER;
 					}
 				}
 			}
 		} else {
-			result[4] = 5;
+			yans[4] = Player.OUTSIDE_THE_BOARD;
 		}
 		// top-right
-		if ((y < size - 1) && (x < size - 1)) {
-			if (b[x + 1][y + 1] != null) {
-				if (!b[x + 1][y + 1].isYan) {
-					result[5] = b[x + 1][y + 1].getColor();
+		if ((y < boardSize - 1) && (x < boardSize - 1)) {
+			if (stonesOnTheBoard[x + 1][y + 1] != null) {
+				if (!stonesOnTheBoard[x + 1][y + 1].isYan) {
+					yans[5] = stonesOnTheBoard[x + 1][y + 1].getPlayer();
 				} else {
-
-					if (b[x + 1][y + 1].getChain().getChainIndex() == this
+					if (stonesOnTheBoard[x + 1][y + 1].getChain().getChainIndex() == this
 							.getChain().getChainIndex()) {
-						result[5] = 2;
+						yans[5] = Player.THE_SAME_YAN;
 					} else {
-						result[5] = -1;
+						yans[5] = Player.NOT_A_PLAYER;
 					}
 				}
 			}
 		} else {
-
-			result[5] = 5;
+			yans[5] = Player.OUTSIDE_THE_BOARD;
 		}
 
 		// bottom-right
-		if ((y > 0) && (x < size - 1)) {
-			if (b[x + 1][y - 1] != null) {
-				if (!b[x + 1][y - 1].isYan) {
-					result[6] = b[x + 1][y - 1].getColor();
+		if ((y > 0) && (x < boardSize - 1)) {
+			if (stonesOnTheBoard[x + 1][y - 1] != null) {
+				if (!stonesOnTheBoard[x + 1][y - 1].isYan) {
+					yans[6] = stonesOnTheBoard[x + 1][y - 1].getPlayer();
 				} else {
-					if (b[x + 1][y - 1].getChain().getChainIndex() == this
+					if (stonesOnTheBoard[x + 1][y - 1].getChain().getChainIndex() == this
 							.getChain().getChainIndex()) {
-						result[6] = 2;
+						yans[6] = Player.THE_SAME_YAN;
 					} else {
-						result[6] = -1;
+						yans[6] = Player.NOT_A_PLAYER;
 					}
 				}
 			}
 		} else {
-			result[6] = 5;
+			yans[6] = Player.OUTSIDE_THE_BOARD;
 		}
 
 		// bottom-left
 		if ((y > 0) && (x > 0)) {
-			if (b[x - 1][y - 1] != null) {
-				if (!b[x - 1][y - 1].isYan) {
-					result[7] = b[x - 1][y - 1].getColor();
+			if (stonesOnTheBoard[x - 1][y - 1] != null) {
+				if (!stonesOnTheBoard[x - 1][y - 1].isYan) {
+					yans[7] = stonesOnTheBoard[x - 1][y - 1].getPlayer();
 				} else {
-					if (b[x - 1][y - 1].getChain().getChainIndex() == this
+					if (stonesOnTheBoard[x - 1][y - 1].getChain().getChainIndex() == this
 							.getChain().getChainIndex()) {
-						result[7] = 2;
+						yans[7] = Player.THE_SAME_YAN;
 					} else {
-						result[7] = -1;
+						yans[7] = Player.NOT_A_PLAYER;
 					}
 				}
 			}
 		} else {
-			result[7] = 5;
+			yans[7] = Player.OUTSIDE_THE_BOARD;
 		}
 
-		return result;
+		return yans;
 	} // end checkQi()
 
-	public int getColor() {
-		return this.color;
+	public Player getPlayer() {
+		return this.player;
 	} // end getColor()
 
-	public void setColor(int pc) {
-		this.color = pc;
+	public void setPlayer(Player player) {
+		this.player = player;
 	} // end setColor()
-
-	public int getValue() {
-		return this.value;
-	} // end getValue()
-
-	public void setValue(int value) {
-		this.value = value;
-	} // end setValue()
-
-	public Stone getNext() {
-		return this.next;
-	} // end getNext()
-
-	public void setNext(Stone next) {
-		this.next = next;
-	} // end setNext()
 
 	public Chain getChain() {
 		return this.chain;
@@ -399,10 +392,6 @@ public class Stone implements Comparable<Stone>, Cloneable {
 		return this.location;
 	} // end getLocation()
 
-	public void setLocation(Point location) {
-		this.location = location;
-	} // end setLocation()
-
 	public boolean isYan() {
 		return this.isYan;
 	} // end is()
@@ -415,49 +404,36 @@ public class Stone implements Comparable<Stone>, Cloneable {
 		return this.isZhenYan;
 	} // end isZhenYan()0
 
-	public void setZhenYan(boolean isZhenyan) {
-		this.isZhenYan = isZhenyan;
+	public void setZhenYan(boolean isZhenYan) {
+		this.isZhenYan = isZhenYan;
 	} // end setZhenYan()
 
 	public boolean isJiaYan() {
 		return isJiaYan;
 	} // end isJiaYan()
 
-	public void setJiaYan(boolean isJiayan) {
-		this.isJiaYan = isJiayan;
+	public void setJiaYan(boolean isJiaYan) {
+		this.isJiaYan = isJiaYan;
 	} // setJiaYan
 
-	public boolean equals(Stone s) {
-		boolean isEqual = sComp.equals(this, s);
-		return isEqual;
-	} // end equals()
-
-	public static StoneComparator getsComp() {
-		return sComp;
-	} // end getsComp()
-
-	public static void setsComp(StoneComparator sComp) {
-		Stone.sComp = sComp;
-	} // end setsComp()
-
-	public void setBelongto(int belongto) {
-		this.belongto = belongto;
+	public void setBelongsTo(Player belongsTo) {
+		this.belongsTo = belongsTo;
 	}
 
-	public int getBelongto() {
-		return this.belongto;
+	public Player getBelongsTo() {
+		return this.belongsTo;
 	}
 
 	@Override
-	public int compareTo(Stone s) {
-		int compare = sComp.compare(this, s);
+	public int compareTo(Stone stone) {
+		int compare = comparator.compare(this, stone);
 		return compare;
 	} // end compareTo()
 
 	@Override
 	public String toString() {
-		return "[Stone Color=" + this.color + ", value=" + this.value
-				+ ", Belongto=" + this.belongto + ", isYan=" + this.isYan
+		return "[Stone Color=" + this.player + ", value=" + this.value
+				+ ", belongsTo=" + this.belongsTo + ", isYan=" + this.isYan
 				+ ", isZhenYan=" + this.isZhenYan + ", isJiaYan="
 				+ this.isJiaYan + ", location= (" + this.location.x + ","
 				+ this.location.y + ")]";

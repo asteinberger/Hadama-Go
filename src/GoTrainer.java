@@ -21,7 +21,7 @@ public class GoTrainer extends JFrame implements ActionListener {
 	private JButton outputState;
 	private String outputCode = "11";
 	private HashMap<JButton, String> inputTable = new HashMap<JButton, String>();
-	private JButton teachNetwork = new JButton("add to training set");
+	private JButton teachTheNeuralNetwork = new JButton("add to training set");
 
 	public GoTrainer() {
 		this.inputMap.put(this.inputTypes[0], "00");
@@ -48,11 +48,11 @@ public class GoTrainer extends JFrame implements ActionListener {
 		panel.add(outputPanel, BorderLayout.SOUTH);
 
 		for (int row = 0; row < 9; row++) {
-			for (int col = 0; col < 9; col++) {
-				this.inputStates[row][col] = new JButton(this.inputTypes[0]);
-				this.inputStates[row][col].addActionListener(this);
-				inputPanel.add(this.inputStates[row][col]);
-				this.inputTable.put(this.inputStates[row][col],
+			for (int column = 0; column < 9; column++) {
+				this.inputStates[row][column] = new JButton(this.inputTypes[0]);
+				this.inputStates[row][column].addActionListener(this);
+				inputPanel.add(this.inputStates[row][column]);
+				this.inputTable.put(this.inputStates[row][column],
 						this.inputTypes[0]);
 			} // end for
 		} // end for
@@ -61,8 +61,8 @@ public class GoTrainer extends JFrame implements ActionListener {
 		this.outputState.addActionListener(this);
 		outputPanel.add(this.outputState);
 
-		this.teachNetwork.addActionListener(this);
-		outputPanel.add(this.teachNetwork);
+		this.teachTheNeuralNetwork.addActionListener(this);
+		outputPanel.add(this.teachTheNeuralNetwork);
 
 		setTitle("Go Neural Network Trainer");
 		setSize(600, 600);
@@ -86,10 +86,10 @@ public class GoTrainer extends JFrame implements ActionListener {
 
 		for (int row = 0; row < 9; row++) {
 
-			for (int col = 0; col < 9; col++) {
-				JButton input = this.inputStates[row][col];
-				String in = this.inputTable.get(input);
-				String code = this.inputMap.get(in);
+			for (int column = 0; column < 9; column++) {
+				JButton inputState = this.inputStates[row][column];
+				String input = this.inputTable.get(inputState);
+				String code = this.inputMap.get(input);
 				codes += code;
 			} // end for
 
@@ -97,9 +97,9 @@ public class GoTrainer extends JFrame implements ActionListener {
 
 		codes += " ";
 
-		JButton output = this.outputState;
-		String out = output.getText();
-		String code = this.outputMap.get(out);
+		JButton outputState = this.outputState;
+		String output = outputState.getText();
+		String code = this.outputMap.get(output);
 
 		this.outputCode = code;
 
@@ -110,9 +110,9 @@ public class GoTrainer extends JFrame implements ActionListener {
 	} // end getCodes()
 
 	@Override
-	public void actionPerformed(ActionEvent ae) {
+	public void actionPerformed(ActionEvent actionEvent) {
 
-		JButton button = (JButton) ae.getSource();
+		JButton button = (JButton) actionEvent.getSource();
 		String state = button.getText();
 
 		if (state.equals(this.inputTypes[0])) {
@@ -132,12 +132,12 @@ public class GoTrainer extends JFrame implements ActionListener {
 		if (state.equals("add to training set")) {
 
 			try {
-				FileWriter fstream = new FileWriter("trainData.txt", true);
-				BufferedWriter out = new BufferedWriter(fstream);
-				out.write(this.getCodes() + "\n");
-				out.close();
-			} catch (IOException e) {
-				System.err.println("Error: " + e.getMessage());
+				FileWriter fileWriter = new FileWriter("trainData.txt", true);
+				BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+				bufferedWriter.write(this.getCodes() + "\n");
+				bufferedWriter.close();
+			} catch (IOException ioException) {
+				System.err.println("Error: " + ioException.getMessage());
 			} // end try
 
 		} else {
@@ -152,81 +152,5 @@ public class GoTrainer extends JFrame implements ActionListener {
 		} // end if
 
 	} // end actionPerformed()
-
-	public JButton[][] getInputStates() {
-		return this.inputStates;
-	} // end getInputStates()
-
-	public void setInputStates(JButton[][] i) {
-		this.inputStates = i;
-	} // end setInputStates()
-
-	public HashMap<JButton, String> getInputTable() {
-		return this.inputTable;
-	} // end getInputTable()
-
-	public void setInputTable(HashMap<JButton, String> i) {
-		this.inputTable = i;
-	} // end setInputTable()
-
-	public String getOutputCode() {
-		return this.outputCode;
-	} // end getOutputCode()
-
-	public void setOutputCode(String c) {
-		this.outputCode = c;
-	} // end setOutputCode()
-
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	} // end getSerialversionuid()
-
-	public JButton getTeachNetwork() {
-		return this.teachNetwork;
-	} // end getTeachNetwork()
-
-	public void setTeachNetwork(JButton t) {
-		this.teachNetwork = t;
-	} // end setTeachNetwork()
-
-	public String[] getOutputTypes() {
-		return this.outputTypes;
-	} // end getOutputTypes()
-
-	public void setOutputTypes(String[] o) {
-		this.outputTypes = o;
-	} // end setOutputTypes()
-
-	public String[] getInputTypes() {
-		return this.inputTypes;
-	} // end getInputTypes()
-
-	public void setInputTypes(String[] i) {
-		this.inputTypes = i;
-	} // end setInputTypes()
-
-	public HashMap<String, String> getInputMap() {
-		return inputMap;
-	}
-
-	public void setInputMap(HashMap<String, String> inputMap) {
-		this.inputMap = inputMap;
-	}
-
-	public HashMap<String, String> getOutputMap() {
-		return outputMap;
-	}
-
-	public void setOutputMap(HashMap<String, String> outputMap) {
-		this.outputMap = outputMap;
-	}
-
-	public JButton getOutputState() {
-		return outputState;
-	}
-
-	public void setOutputState(JButton outputState) {
-		this.outputState = outputState;
-	}
 
 } // end class

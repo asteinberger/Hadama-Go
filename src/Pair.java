@@ -12,16 +12,8 @@
 			return this.left;
 		} // end getLeft()
 
-		public void setLeft(L left) {
-			this.left = left;
-		} // end setLeft()
-
 		public R getRight() {
 			return this.right;
 		} // end getRight()
-
-		public void setRight(R right) {
-			this.right = right;
-		} // end setRight()
 
 	} // end class

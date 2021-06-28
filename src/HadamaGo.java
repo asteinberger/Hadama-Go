@@ -2,7 +2,7 @@
  * HadamaGo.java - This is the main game thread for playing Hadama Go! 
  * It setups the window and starts a new game.
  * 
- * @author Adam Steinberger <steinz08@gmail.com>, Haoran Ma <mahaoran1020@gmail.com>
+ * @author Adam Steinberger <adam@akmaz.io>, Haoran Ma <mahaoran1020@gmail.com>
  */
 
 import java.awt.*;
@@ -19,7 +19,7 @@ public class HadamaGo extends Thread {
 	/**
 	 * Hard coded game mode calls for a human versus human player game.
 	 */
-	private static String gameMode = "HvRL";
+	private static GameMode gameMode = GameMode.HUMAN_VS_Q_LEARNING;
 
 	/**
 	 * The window frame dimensions are hard coded to 694 by 722 pixels.
@@ -46,7 +46,7 @@ public class HadamaGo extends Thread {
 	/**
 	 * The GoBoard contains the stones that are used while in game play.
 	 */
-	private Board gameBoard;
+	private GoBoard gameBoard;
 
 	/**
 	 * The gamePlay variable controls what happens when players make moves on
@@ -67,12 +67,12 @@ public class HadamaGo extends Thread {
 	// t = testFrame
 	// g = goboard
 	// gameMode = mode
-	public HadamaGo(String gameMode, int boardSize) throws Exception {
+	public HadamaGo(GameMode gameMode, int boardSize) throws Exception {
 		this.game = this;
 		this.gameMode = gameMode;
 		this.boardSize = boardSize;
 		this.boardLength = boardSize;
-		this.gameBoard = new Board(this.boardSize);
+		this.gameBoard = new GoBoard(this.boardSize);
 		this.gamePlay = new GamePlay(this.gameMode, this.boardLength);
 		this.gamePanel = new GoPanel(this.gameBoard, this.gamePlay);
 		this.gameListener = new GameListener(this, this.gameBoard, this.boardSize, this.gamePlay);
@@ -138,7 +138,7 @@ public class HadamaGo extends Thread {
 
 	} // end main
 
-	public void setGameBoard(Board b) {
+	public void setGameBoard(GoBoard b) {
 		this.gameBoard = b;
 	} // end setGameBoard()
 

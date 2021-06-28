@@ -3,63 +3,63 @@ import java.util.ArrayList;
 
 public class Move {
 
-	private Stone added;
-	private ArrayList<Chain> removedChain;
+	private Stone addedStone;
+	private ArrayList<Chain> removedChains;
 	private int counter;
-	private static int counterOfMove;
+	private static int counterOfMoves;
 	private Point lastMove;
-	private boolean isPass;
+	private boolean thisMoveIsAPass;
 	private Point lastTiziPosition;
-	private int lastNumberTizi;
+	private int lastTiziNumber;
 
-	public Move(Stone stone,
-				ArrayList<Chain> chains,
+	public Move(Stone addedStone,
+				ArrayList<Chain> removedChains,
 				Point lastMove,
-				boolean isPass,
+				boolean thisMoveIsAPass,
 				Point lastTiziPosition,
-				int lastNumberTizi) {
-		this.added = stone;
-		this.removedChain = chains;
+				int lastTiziNumber) {
+		this.addedStone = addedStone;
+		this.removedChains = removedChains;
 		this.lastMove = lastMove;
-		this.isPass = isPass;
+		this.thisMoveIsAPass = thisMoveIsAPass;
 		this.lastTiziPosition = lastTiziPosition;
-		this.lastNumberTizi = lastNumberTizi;
-		this.counter = counterOfMove;
-		this.counterOfMove++;
+		this.lastTiziNumber = lastTiziNumber;
+		this.counter = counterOfMoves;
+		this.counterOfMoves++;
 	} // end constructor
 
-	public boolean getisPass() {
-		return this.isPass;
+	public boolean getThisMoveIsAPass() {
+		return this.thisMoveIsAPass;
 	}
 
 	public Stone getAddedStone() {
-		return this.added;
+		return this.addedStone;
 	}
 
 	public Point getlastTiziPosition() {
 		return this.lastTiziPosition;
 	}
 
-	public int getlastNumTizi() {
-		return this.lastNumberTizi;
+	public int getlastTiziNumber() {
+		return this.lastTiziNumber;
 	}
 
-	public ArrayList<Chain> getRemovedChain() {
-		return removedChain;
+	public ArrayList<Chain> getRemovedChains() {
+		return removedChains;
 	}
 
-	public Point getlastMove() {
+	public Point getLastMove() {
 		return this.lastMove;
 	}
 
 	@Override
 	public String toString() {
-		return "Move " + counter + ": " + "[isPass: " + isPass + ", "
+		return "Move " + counter + ": " + "[isPass: " + thisMoveIsAPass + ", "
 				+ "lastTiziPosition: " + this.lastTiziPosition + ", "
-				+ "lastNumberTizi: " + this.lastNumberTizi + ", " + "Last Move: "
-				+ lastMove + "]\n" + "[Stone added: " + added + "]\n"
+				+ "lastNumberTizi: " + this.lastTiziNumber + ", " + "Last Move: "
+				+ lastMove + "]\n" + "[Stone added: " + addedStone + "]\n"
 				+ "[Chain removed:\n"
-				+ removedChain.toString().replaceAll("],", "]\n") + "]";
+				+ removedChains.toString().replaceAll("],", "]\n") + "]";
 	}
 
 } // end class

@@ -12,78 +12,73 @@ import java.util.ArrayList;
 public class GameListener implements KeyListener, ActionListener,
 		MouseListener, MouseMotionListener {
 
-	private static Point cellDim = new Point(35, 35);
+	private static Point cellDimensions = new Point(35, 35);
 	private static Point borderTopLeft = new Point(200, 184);
-	private static Point borderBottomRight = new Point(493, 463);
-	private HadamaGo ait;
-	private Board goBoard;
-	private int size = 9;
-	private Point location;
+	private HadamaGo hadamaGo;
+	private GoBoard goBoard;
+	private int boardSize = 9;
 	private Point point;
-	private Point intersection;
 	private int[] verticals;
 	private int[] horizontals;
 	private GamePlay gamePlay;
-	private int color = 0;
-	private String mode = "HvH";
+	private Player player = Player.BLACK;
+	private GameMode mode = GameMode.HUMAN_VS_HUMAN;
 	private boolean gameOver = false;
 
-	public GameListener(HadamaGo ait, Board b, int s, GamePlay gp) {
-		this.ait = ait;
-		this.size = s;
-		this.goBoard = b;
-		this.location = new Point(0, s - 1);
+	public GameListener(HadamaGo hadamaGo, GoBoard goBoard, int boardSize, GamePlay gamePlay) {
+		this.hadamaGo = hadamaGo;
+		this.boardSize = boardSize;
+		this.goBoard = goBoard;
 		this.point = new Point(GameListener.borderTopLeft.x,
 				GameListener.borderTopLeft.y);
-		this.intersection = new Point(0, 0);
-		this.verticals = new int[s];
-		this.horizontals = new int[s];
-		for (int i = 0; i < s; i++) {
-			this.horizontals[i] = GameListener.borderTopLeft.y
-					+ ((this.size - i - 1) * GameListener.cellDim.y);
-			this.verticals[i] = GameListener.borderTopLeft.x
-					+ (i * GameListener.cellDim.x);
+		this.verticals = new int[boardSize];
+		this.horizontals = new int[boardSize];
+		for (int index = 0; index < boardSize; index++) {
+			this.horizontals[index] = GameListener.borderTopLeft.y
+					+ ((this.boardSize - index - 1) * GameListener.cellDimensions.y);
+			this.verticals[index] = GameListener.borderTopLeft.x
+					+ (index * GameListener.cellDimensions.x);
 		} // end for
-		this.gamePlay = gp;
+		this.gamePlay = gamePlay;
 	} // end constructor
 
 	@Override
 	// Menu Option Events
-	public void actionPerformed(ActionEvent ae) {
-		String s = ae.getActionCommand();
-		if (s.equals("pass turn")) {
+	public void actionPerformed(ActionEvent actionEvent) {
+		String actionCommand = actionEvent.getActionCommand();
+		if (actionCommand.equals("pass turn")) {
 			try {
 				this.pass();
-			} catch (Exception e1) {
-				e1.printStackTrace();
+			} catch (Exception exception) {
+				exception.printStackTrace();
 			} // end try
-		} else if (s.equals("forfeit")) {
+		} else if (actionCommand.equals("forfeit")) {
 			try {
 				this.forfeit();
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (Exception exception) {
+				exception.printStackTrace();
 			} // end try
-		} else if (s.equals("undo move"))
+		} else if (actionCommand.equals("undo move"))
 			this.undoMove();
-		else if (s.equals("new game"))
+		else if (actionCommand.equals("new game"))
 			this.newGame();
 	} // end actionPerformed()
 
 	@Override
-	public void keyPressed(KeyEvent arg0) {
+	public void keyPressed(KeyEvent keyEvent) {
 	} // end keyPressed()
 
 	@Override
-	public void keyReleased(KeyEvent arg0) {
+	public void keyReleased(KeyEvent keyEvent) {
 	} // end keyReleased()
 
 	@Override
-	public void keyTyped(KeyEvent arg0) {
-		char ch = arg0.getKeyChar();
+	public void keyTyped(KeyEvent keyEvent) {
+		char keyChar = keyEvent.getKeyChar();
 		try {
-			this.movePiece(ch);
-		} catch (Exception e) {
-			e.printStackTrace();
+			this.movePiece(keyChar);
+		} catch (Exception exception) {
+			exception.printStackTrace();
 		} // end try
 	} // end keyTyped()
 
@@ -166,65 +161,63 @@ public class GameListener implements KeyListener, ActionListener,
 	} // end movePiece()
 
 	@Override
-	public void mouseClicked(MouseEvent arg0) {
+	public void mouseClicked(MouseEvent mouseEvent) {
 	} // end mouseClicked()
 
 	@Override
-	public void mouseEntered(MouseEvent arg0) {
+	public void mouseEntered(MouseEvent mouseEvent) {
 	} // end mouseEntered()
 
 	@Override
-	public void mouseExited(MouseEvent arg0) {
+	public void mouseExited(MouseEvent mouseEvent) {
 	} // end mouseExited()
 
 	@Override
-	public void mousePressed(MouseEvent arg0) {
+	public void mousePressed(MouseEvent mouseEvent) {
 	} // end mousePressed()
 
 	@Override
-	public void mouseReleased(MouseEvent arg0) {
+	public void mouseReleased(MouseEvent mouseEvent) {
 	} // end mouseReleased()
 
 	@Override
-	public void mouseDragged(MouseEvent arg0) {
+	public void mouseDragged(MouseEvent mouseEvent) {
 	} // end mouseDragged()
 
 	@Override
-	public void mouseMoved(MouseEvent arg0) {
-		// System.out.println(Integer.toString(arg0.getX()) + ", "
-		// + Integer.toString(arg0.getY()));
+	public void mouseMoved(MouseEvent mouseEvent) {
 	} // end mouseMoved()
 
 	private void forfeit() throws Exception {
-		this.gamePlay.forfeit(this.color);
+		this.gamePlay.forfeit(this.player);
 		this.gameOver = true;
-		this.gamePlay.setGameOver(this.gameOver);
+		this.gamePlay.setGameOver(true);
 	} // end forfeit()
 
 	private void newGame() {
 		this.gameOver = false;
-		this.gamePlay.setGameOver(this.gameOver);
+		this.gamePlay.setGameOver(false);
 		this.gamePlay.newGame();
-		this.gamePlay.setPlayer(0);
-		this.color = 0;
+		this.gamePlay.setPlayer(Player.BLACK);
+		this.player = Player.BLACK;
 		HadamaGo.getGamePanel().paint(HadamaGo.getGamePanel().getGraphics());
 	} // end newGame()
 
 	private void undoMove() {
 		this.gamePlay.undoMove(this.goBoard);
 		this.togglePlayer();
-		HadamaGo.getGamePanel().setColor(this.color);
+		HadamaGo.getGamePanel().setPlayer(this.player);
 		HadamaGo.getGamePanel().paint(HadamaGo.getGamePanel().getGraphics());
 	} // end undoMove()
 
 	private void placePiece() throws Exception {
-		this.gamePlay.placePiece(this.goBoard, this.color);
+		this.gamePlay.placePiece(this.goBoard, this.player);
 		this.gameOver = this.gamePlay.isGameOver();
-		this.color = this.gamePlay.getPlayer();
-		this.ait.setGameBoard(this.goBoard);
-		GoPanel gp = HadamaGo.getGamePanel();
-		gp.setColor(this.color);
-		HadamaGo.setGamePanel(gp);
+		this.player = this.gamePlay.getPlayer();
+		this.hadamaGo.setGameBoard(this.goBoard);
+		GoPanel goPanel = HadamaGo.getGamePanel();
+		goPanel.setPlayer(this.player);
+		HadamaGo.setGamePanel(goPanel);
 		HadamaGo.getGamePanel().paint(HadamaGo.getGamePanel().getGraphics());
 	} // end placePiece()
 
@@ -233,18 +226,18 @@ public class GameListener implements KeyListener, ActionListener,
 		if (this.gamePlay.getJustPassed()) {
 
 			this.gameOver = true;
-			this.gamePlay.setGameOver(this.gameOver);
+			this.gamePlay.setGameOver(true);
 			this.gamePlay.gameOver();
 
 		} else {
 
-			Stone ns = new Stone();
-			ns.setColor(this.color);
+			Stone stone = new Stone();
+			stone.setPlayer(this.player);
 			ArrayList<Chain> removedChains = new ArrayList<Chain>();
 
-			Move newMove = new Move(ns, removedChains, null, true,
+			Move newMove = new Move(stone, removedChains, null, true,
 					this.goBoard.getLastTiziPosition(),
-					this.goBoard.getLastTiziNum());
+					this.goBoard.getLastTiziNumber());
 
 			this.gamePlay.getGoBoard().getMoves().push(newMove);
 			this.togglePlayer();
@@ -252,71 +245,31 @@ public class GameListener implements KeyListener, ActionListener,
 
 		} // end if
 
-		this.gamePlay.setPlayer(this.color);
-		HadamaGo.getGamePanel().setColor(this.color);
+		this.gamePlay.setPlayer(this.player);
+		HadamaGo.getGamePanel().setPlayer(this.player);
 		HadamaGo.getGamePanel().paint(HadamaGo.getGamePanel().getGraphics());
 
 	} // end pass()
 
 	private void togglePlayer() {
-		if (this.color == 0)
-			this.color = 1;
-		else if (this.color == 1)
-			this.color = 0;
+		if (this.player == Player.BLACK)
+			this.player = Player.WHITE;
+		else if (this.player == Player.WHITE)
+			this.player = Player.BLACK;
 		else
-			this.color = -1;
+			this.player = Player.NOT_A_PLAYER;
 	} // end togglePlayer()
 
 	/*
 	 * getters and setters
 	 */
-	public HadamaGo getAit() {
-		return this.ait;
-	} // end getAit()
-
-	public void setAit(HadamaGo ait) {
-		this.ait = ait;
-	} // end setAit()
-
-	public static Point getCell() {
-		return GameListener.cellDim;
-	} // end getCell()
-
-	public static void setCell(Point cell) {
-		GameListener.cellDim = cell;
-	} // end setCell()
-
-	public static Point getBorderTopLeft() {
-		return GameListener.borderTopLeft;
-	} // end getBorderTopLeft()
-
-	public static void setBorderTopLeft(Point borderTopLeft) {
-		GameListener.borderTopLeft = borderTopLeft;
-	} // end setBorderTopLeft()
-
-	public static Point getBorderBottomRight() {
-		return GameListener.borderBottomRight;
-	} // end getBorderBottomRight()
-
-	public static void setBorderBottomRight(Point borderBottomRight) {
-		GameListener.borderBottomRight = borderBottomRight;
-	} // end setBorderBottomRight()
-
-	public String getMode() {
+	public GameMode getMode() {
 		return this.mode;
 	} // end getMode()
 
-	public void setMode(String mode) {
+	public void setMode(GameMode mode) {
 		this.mode = mode;
 	} // end setMode()
-
-	public Point getLocation() {
-		return location;
-	}
-
-	public void setLocation(Point location) {
-		this.location = location;
-	}
 
 	public Point getPoint() {
 		return point;
@@ -324,14 +277,6 @@ public class GameListener implements KeyListener, ActionListener,
 
 	public void setPoint(Point point) {
 		this.point = point;
-	}
-
-	public Point getIntersection() {
-		return intersection;
-	}
-
-	public void setIntersection(Point intersection) {
-		this.intersection = intersection;
 	}
 
 } // end class
