@@ -79,12 +79,12 @@ public class NeuralNetworkTrainer {
 
 		System.out.println("Setup Network Data for Network Trainer");
 
-		double[][] inputs = neuralNetworkTrainer.getARandomSampleOfData(neuralNetworkTrainer.getTrainingInput(),
+		double[][] trainingInputs = neuralNetworkTrainer.getARandomSampleOfData(neuralNetworkTrainer.getTrainingInput(),
 				neuralNetworkTrainer.getSampleSize());
-		double[][] outputs = neuralNetworkTrainer.getARandomSampleOfData(neuralNetworkTrainer.getTrainingOutput(),
+		double[][] expectedOutputs = neuralNetworkTrainer.getARandomSampleOfData(neuralNetworkTrainer.getTrainingOutput(),
 				neuralNetworkTrainer.getSampleSize());
 
-		neuralNetworkTrainer.getNeuralNetwork().setupNetwork(0.00001, 0.9f, 0.7f, inputs, outputs);
+		neuralNetworkTrainer.getNeuralNetwork().setupTheNetwork(0.00001, 0.9f, 0.7f, trainingInputs, expectedOutputs);
 
 		System.out.println("Train Neural Network");
 		System.out.println("Data Size: " + neuralNetworkTrainer.getDataSize());
@@ -142,7 +142,7 @@ public class NeuralNetworkTrainer {
 	} // end trainTheNetwork()
 
 	public double[] testTheNetwork(double[] testInputs) {
-		this.neuralNetwork.setInputs(testInputs);
+		this.neuralNetwork.setTrainingInputs(testInputs);
 		this.neuralNetwork.feedForward();
 		double[] outputs = this.neuralNetwork.getOutputs();
 		return outputs;

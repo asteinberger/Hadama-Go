@@ -12,7 +12,7 @@ public class NeuralNetwork {
 	private double epsilon = 0.00000000001;
 	private double learningRate = 0.9f;
 	private double momentum = 0.7f;
-	private double inputs[][];
+	private double trainingInputs[][];
 	private double expectedOutputs[][];
 	private double resultingOutputs[][];
 	private boolean isTheNetworkTrained = false;
@@ -173,15 +173,15 @@ public class NeuralNetwork {
 		Dendrite.setCounter(0);
 	} // end resetIdCounters()
 
-	public void setupNetwork(double epsilon,
-							 double learningRate,
-							 double momentum,
-							 double[][] inputs,
-							 double[][] expectedOutputs) {
+	public void setupTheNetwork(double epsilon,
+								double learningRate,
+								double momentum,
+								double[][] trainingInputs,
+								double[][] expectedOutputs) {
 		this.epsilon = epsilon;
 		this.learningRate = learningRate;
 		this.momentum = momentum;
-		this.inputs = inputs;
+		this.trainingInputs = trainingInputs;
 		this.expectedOutputs = expectedOutputs;
 		this.resultingOutputs = new double[expectedOutputs.length][expectedOutputs[0].length];
 		for (int index = 0; index < expectedOutputs.length; index++) {
@@ -196,11 +196,11 @@ public class NeuralNetwork {
 	/**
 	 * Input percept data for thinking
 	 * 
-	 * @param inputs
+	 * @param trainingInputs
 	 */
-	public void setInputs(double inputs[]) {
+	public void setTrainingInputs(double trainingInputs[]) {
 		for (int index = 0; index < this.inputLayer.size(); index++) {
-			this.inputLayer.get(index).setOutput(inputs[index]);
+			this.inputLayer.get(index).setOutput(trainingInputs[index]);
 		}
 	} // end setInput()
 
@@ -335,9 +335,9 @@ public class NeuralNetwork {
 
 			error = 0;
 
-			for (int row = 0; row < this.inputs.length; row++) {
+			for (int row = 0; row < this.trainingInputs.length; row++) {
 
-				this.setInputs(this.inputs[row]);
+				this.setTrainingInputs(this.trainingInputs[row]);
 				this.feedForward();
 				this.resultingOutputs[row] = this.getOutputs();
 
@@ -372,7 +372,7 @@ public class NeuralNetwork {
 				+ Arrays.toString(this.layers) + ", epsilon=" + this.epsilon
 				+ ", learningRate=" + this.learningRate + ", momentum="
 				+ this.momentum + ", \ninputs="
-				+ Arrays.deepToString(this.inputs) + ", \nexpectedOutputs="
+				+ Arrays.deepToString(this.trainingInputs) + ", \nexpectedOutputs="
 				+ Arrays.deepToString(this.expectedOutputs)
 				+ ", \nresultingOutputs="
 				+ Arrays.deepToString(this.resultingOutputs) + ", \nisTheNetworkTrained="
