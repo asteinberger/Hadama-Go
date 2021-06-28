@@ -94,7 +94,7 @@ public class QLearning {
 		else if (player == Player.WHITE)
 			playerCode = "10";
 
-		neuralNetwork.setInputs(code);
+		neuralNetwork.createInputLayerFromTrainingCodes(code);
 		double[] outputs = neuralNetwork.getOutputs();
 		double q = this.qValue(player, outputs);
 
@@ -119,7 +119,7 @@ public class QLearning {
 
 			moveCode = before.concat(playerCode).concat(after);
 
-			neuralNetwork.setInputs(moveCode);
+			neuralNetwork.createInputLayerFromTrainingCodes(moveCode);
 			double[] neuralNetworkOutputs = neuralNetwork.getOutputs();
 			double qOfNeuralNetworkOutputs = this.qValue(player, neuralNetworkOutputs);
 
@@ -185,7 +185,7 @@ public class QLearning {
 
 			moveCode = before.concat(playerCode).concat(after);
 
-			neuralNetwork.setInputs(moveCode);
+			neuralNetwork.createInputLayerFromTrainingCodes(moveCode);
 			double[] randomOutputs = neuralNetwork.getOutputs();
 			qMaximum = this.qValue(player, randomOutputs);
 

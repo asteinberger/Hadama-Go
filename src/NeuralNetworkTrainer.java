@@ -142,7 +142,7 @@ public class NeuralNetworkTrainer {
 	} // end trainTheNetwork()
 
 	public double[] testTheNetwork(double[] testInputs) {
-		this.neuralNetwork.setTrainingInputs(testInputs);
+		this.neuralNetwork.setInputLayerNeurons(testInputs);
 		this.neuralNetwork.feedForward();
 		double[] outputs = this.neuralNetwork.getOutputs();
 		return outputs;

@@ -198,13 +198,13 @@ public class NeuralNetwork {
 	 * 
 	 * @param trainingInputs
 	 */
-	public void setTrainingInputs(double trainingInputs[]) {
+	public void setInputLayerNeurons(double trainingInputs[]) {
 		for (int index = 0; index < this.inputLayer.size(); index++) {
 			this.inputLayer.get(index).setOutput(trainingInputs[index]);
 		}
 	} // end setInput()
 
-	public void setInputs(String code) {
+	public void createInputLayerFromTrainingCodes(String code) {
 		for (int index = 0; index < code.length(); index++) {
 			char character = code.charAt(index);
 			String string = String.valueOf(character);
@@ -225,6 +225,25 @@ public class NeuralNetwork {
 		}
 		return outputs;
 	} // end getOutputs()
+
+	/**
+	 * Run the Neural Network
+	 *
+	 * @return the output from the neural network
+	 */
+	public double[] runTheNetwork(double[] inputs) {
+		this.setInputLayerNeurons(inputs);
+		this.feedForward();
+		double[] outputs = new double[outputLayer.size()];
+		int outputIndex = 0;
+		Iterator<Neuron> iterator = outputLayer.iterator();
+		while (iterator.hasNext()) {
+			Neuron neuron = iterator.next();
+			outputs[outputIndex] = neuron.getOutput();
+			outputIndex++;
+		}
+		return outputs;
+	}
 
 	/**
 	 * Feed Forward
@@ -337,7 +356,7 @@ public class NeuralNetwork {
 
 			for (int row = 0; row < this.trainingInputs.length; row++) {
 
-				this.setTrainingInputs(this.trainingInputs[row]);
+				this.setInputLayerNeurons(this.trainingInputs[row]);
 				this.feedForward();
 				this.resultingOutputs[row] = this.getOutputs();
 
